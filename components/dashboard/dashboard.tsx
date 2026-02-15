@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TemplatesList } from "./templates-list";
+
 import { WorkspacesList } from "./workspaces-list";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 import { FileText, LogOut, Plus, Search } from "lucide-react";
@@ -195,23 +195,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Tabs defaultValue="workspaces" className="w-full">
-          <div className="flex items-center justify-between mb-8">
-            <TabsList className="bg-white/60 backdrop-blur border border-slate-200 shadow-sm">
-              <TabsTrigger
-                value="workspaces"
-                className="data-[state=active]:bg-white data-[state=active]:text-blue-600"
-              >
-                Workspaces
-              </TabsTrigger>
-              <TabsTrigger
-                value="templates"
-                className="data-[state=active]:bg-white data-[state=active]:text-blue-600"
-              >
-                Templates
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
           <TabsContent value="workspaces" className="space-y-8 mt-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -267,34 +250,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                   )}
                 </TabsContent>
               </Tabs>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="templates" className="space-y-8 mt-6">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold text-slate-900">
-                  Templates Library
-                </h2>
-                <p className="text-slate-600 mt-2">
-                  Start with professionally crafted legal agreement templates
-                </p>
-              </div>
-
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                <Input
-                  placeholder="Search templates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 h-11"
-                />
-              </div>
-
-              <TemplatesList
-                searchQuery={searchQuery}
-                onUseTemplate={handleUseTemplate}
-              />
             </div>
           </TabsContent>
         </Tabs>

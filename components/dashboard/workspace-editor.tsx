@@ -35,6 +35,7 @@ import {
 import { FileUploadDialog } from "./file-upload-dialog";
 import { parseFile } from "@/lib/file-parser";
 import { useChatbot } from "@/lib/chatbot-context";
+import { TemplatesDialog } from "./Template-dialog";
 
 interface WorkspaceEditorProps {
   workspace: any;
@@ -58,6 +59,7 @@ export function WorkspaceEditor({
   const [showDocumentShare, setShowDocumentShare] = useState(false);
   const [selectedDocToShare, setSelectedDocToShare] = useState<any>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [openTemplate, setopenTemplate] = useState(false);
 
   const { setDocumentContent, setDocumentTitle } = useChatbot();
 
@@ -91,6 +93,7 @@ export function WorkspaceEditor({
 
     fetchData();
   }, [workspace._id]);
+
   const addDocument = async (doc: any, id: string) => {
     try {
       const res = await fetch("/api/documents", {
@@ -210,6 +213,9 @@ export function WorkspaceEditor({
     setSelectedDocToShare(doc);
     setShowDocumentShare(true);
   };
+  const callTemplates = () => {
+    setopenTemplate(true);
+  };
 
   const handleDocumentShareConfirm = (sharedWith: any[]) => {
     if (selectedDocToShare) {
@@ -313,6 +319,13 @@ export function WorkspaceEditor({
           </div>
         </CardContent>
       </Card>
+      <TemplatesDialog
+        open={openTemplate}
+        onOpenChange={setopenTemplate}
+        onSelectTemplate={(template) => {
+          console.log(template);
+        }}
+      />
 
       {/* Share Dialog */}
       <SharePermissionsDialog
@@ -343,6 +356,13 @@ export function WorkspaceEditor({
             >
               <Plus className="w-4 h-4" />
               New Document
+            </Button>
+            <Button
+              onClick={() => callTemplates()}
+              className="gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              Use Template
             </Button>
           </div>
         </div>
