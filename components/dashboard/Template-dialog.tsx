@@ -9,21 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { TEMPLATES, type Template } from "@/app/templates/templates";
 import { FileText } from "lucide-react";
-
-interface TemplatesDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSelectTemplate: (template: Template) => void;
-}
+import { useStore } from "@/store/useStore";
+import { TemplatesDialogProps } from "@/utils/helper";
 
 export function TemplatesDialog({
   open,
@@ -37,10 +27,13 @@ export function TemplatesDialog({
   const handleSelectTemplate = (template: Template) => {
     setSelectedTemplate(template);
   };
+  const fetchPdfData = useStore((state) => state.fetchPdfData);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedTemplate) {
+      await fetchPdfData(selectedTemplate.name);
       onSelectTemplate(selectedTemplate);
+
       setSelectedTemplate(null);
       onOpenChange(false);
     }

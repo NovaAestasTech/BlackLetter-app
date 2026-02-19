@@ -19,12 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface WorkspacesListProps {
-  workspaces: any[];
-  currentUser: any;
-  createWorkSpace: () => void;
-}
-
+import { WorkspacesListProps } from "@/utils/helper";
 export function WorkspacesList({
   workspaces,
   currentUser,

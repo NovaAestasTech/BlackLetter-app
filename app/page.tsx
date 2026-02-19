@@ -7,6 +7,7 @@ import { Dashboard } from "@/components/dashboard/dashboard";
 export default function Home() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
   console.log(user);
 
   useEffect(() => {

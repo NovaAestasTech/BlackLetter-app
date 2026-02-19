@@ -33,18 +33,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FileUploadDialog } from "./file-upload-dialog";
-import { parseFile } from "@/lib/file-parser";
+import { useStore } from "@/store/useStore";
 import { useChatbot } from "@/lib/chatbot-context";
 import { TemplatesDialog } from "./Template-dialog";
+import { Template } from "@/app/templates/templates";
 
-interface WorkspaceEditorProps {
-  workspace: any;
-  currentUser: any;
-  onBack: () => void;
-}
-interface ParsedDocument {
-  content: string;
-}
+import { ParsedDocument } from "@/utils/helper";
+import { WorkspaceEditorProps } from "@/utils/helper";
 
 export function WorkspaceEditor({
   workspace,
@@ -60,9 +55,9 @@ export function WorkspaceEditor({
   const [selectedDocToShare, setSelectedDocToShare] = useState<any>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [openTemplate, setopenTemplate] = useState(false);
-
+  const { pdfName, pdfText } = useStore();
   const { setDocumentContent, setDocumentTitle } = useChatbot();
-
+  const [isCreating, setIsCreating] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState([
     {
       id: workspace.owner,
@@ -168,14 +163,6 @@ export function WorkspaceEditor({
     }
   };
 
-  const handleDocumentClose = (updatedDoc: any) => {
-    const updatedDocs = documents.map((doc) =>
-      doc.id === updatedDoc.id ? updatedDoc : doc,
-    );
-    setDocuments(updatedDocs);
-    setSelectedDoc(null);
-  };
-
   const handleAddMember = (data: any) => {
     const newMember = {
       id: Math.random().toString(36).substr(2, 9),
@@ -213,8 +200,46 @@ export function WorkspaceEditor({
     setSelectedDocToShare(doc);
     setShowDocumentShare(true);
   };
-  const callTemplates = () => {
-    setopenTemplate(true);
+  const callTemplates = async () => {
+    try {
+      setopenTemplate(true);
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentified Error");
+    }
+  };
+  useEffect(() => {
+    if (isCreating && pdfText) {
+      const saveNewTemplateDoc = async () => {
+        const doc = {
+          title: pdfName || "New Template Document",
+          content: pdfText,
+          createdAt: new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+          createdBy: currentUser.id,
+          fileType: "pdf",
+          sharedWith: [],
+        };
+
+        await addDocument(doc, workspace._id);
+        setDocuments((prev) => [doc, ...prev]);
+        setIsCreating(false);
+      };
+
+      saveNewTemplateDoc();
+    }
+  }, [pdfText, pdfName, isCreating]);
+  const createTemplate = async (template: Template) => {
+    try {
+      setIsCreating(true);
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentified Error");
+    }
   };
 
   const handleDocumentShareConfirm = (sharedWith: any[]) => {
@@ -322,9 +347,7 @@ export function WorkspaceEditor({
       <TemplatesDialog
         open={openTemplate}
         onOpenChange={setopenTemplate}
-        onSelectTemplate={(template) => {
-          console.log(template);
-        }}
+        onSelectTemplate={createTemplate}
       />
 
       {/* Share Dialog */}

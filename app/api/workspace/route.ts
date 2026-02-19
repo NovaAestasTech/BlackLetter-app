@@ -32,7 +32,9 @@ export async function DELETE(req: Request) {
 export async function GET() {
   try {
     await connectToDatabase();
+
     const workspaces = await WorkSpaces.find({});
+
     return NextResponse.json(workspaces, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
     await connectToDatabase();
     const data = await request.json();
     const workspace = await WorkSpaces.create(data);
+
     return NextResponse.json(workspace, { status: 201 });
   } catch (error) {
     return NextResponse.json(
