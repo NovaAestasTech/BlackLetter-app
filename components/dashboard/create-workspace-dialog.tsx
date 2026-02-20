@@ -1,38 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-interface CreateWorkspaceDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCreate: (data: { name: string; description: string }) => void
-}
-
-export function CreateWorkspaceDialog({ open, onOpenChange, onCreate }: CreateWorkspaceDialogProps) {
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
+import { CreateWorkspaceDialogProps } from "@/utils/helper";
+export function CreateWorkspaceDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: CreateWorkspaceDialogProps) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
   const handleCreate = () => {
-    if (!name.trim()) return
-    onCreate({ name, description })
-    setName("")
-    setDescription("")
-  }
+    if (!name.trim()) return;
+    onCreate({ name, description });
+    setName("");
+    setDescription("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Workspace</DialogTitle>
-          <DialogDescription>Create a workspace to collaborate with your team on legal agreements</DialogDescription>
+          <DialogDescription>
+            Create a workspace to collaborate with your team on legal agreements
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Workspace Name</label>
+            <label className="text-sm font-medium text-foreground block mb-1">
+              Workspace Name
+            </label>
             <Input
               placeholder="e.g., Q1 Contract Review"
               value={name}
@@ -42,7 +51,9 @@ export function CreateWorkspaceDialog({ open, onOpenChange, onCreate }: CreateWo
           </div>
 
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Description (Optional)</label>
+            <label className="text-sm font-medium text-foreground block mb-1">
+              Description (Optional)
+            </label>
             <Input
               placeholder="Describe the purpose of this workspace"
               value={description}
@@ -59,5 +70,5 @@ export function CreateWorkspaceDialog({ open, onOpenChange, onCreate }: CreateWo
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

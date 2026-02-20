@@ -32,3 +32,47 @@ export interface WorkspacesListProps {
   currentUser: any;
   createWorkSpace: () => void;
 }
+export interface SharePermissionsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  members: any[];
+  onAddMember: (data: { email: string; role: string }) => void;
+  onRemoveMember: (memberId: string) => void;
+  onUpdateRole: (memberId: string, role: string) => void;
+  currentUser: any;
+}
+
+export interface FileUploadDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onFileUpload: (file: File, title: string) => void;
+}
+
+export interface DocumentShareDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  document: any;
+  workspaceMembers: any[];
+  sharedWith: any[];
+  onShare: (sharedWith: any[]) => void;
+}
+
+export interface CreateWorkspaceDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreate: (data: { name: string; description: string }) => void;
+}
+
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+export interface AgreementChatbotProps {
+  documentContent: string;
+  documentTitle: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}

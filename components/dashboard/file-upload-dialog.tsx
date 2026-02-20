@@ -15,11 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Upload, FileText, AlertCircle, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
-interface FileUploadDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onFileUpload: (file: File, title: string) => void;
-}
+import { FileUploadDialogProps } from "@/utils/helper";
 
 export function FileUploadDialog({
   open,
@@ -66,7 +62,6 @@ export function FileUploadDialog({
 
     setIsProcessing(true);
     try {
-     
       await new Promise((resolve) => setTimeout(resolve, 1000));
       onFileUpload(selectedFile, fileTitle);
       setSelectedFile(null);

@@ -20,17 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Copy, Check } from "lucide-react";
-
-interface SharePermissionsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  members: any[];
-  onAddMember: (data: { email: string; role: string }) => void;
-  onRemoveMember: (memberId: string) => void;
-  onUpdateRole: (memberId: string, role: string) => void;
-  currentUser: any;
-}
-
+import { SharePermissionsDialogProps } from "@/utils/helper";
 const ROLES = [
   {
     value: "owner",
