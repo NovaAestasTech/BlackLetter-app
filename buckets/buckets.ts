@@ -1,6 +1,7 @@
+export const runtime = "nodejs";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import pdf from "pdf-parse";
 
-import { pdf } from "pdf-parse";
 const s3 = new S3Client({
   forcePathStyle: true,
   region: "us-east-1",
@@ -27,10 +28,9 @@ export async function getPdfData(bucketName: string, filename: string) {
     };
     const buffer = await streamToBuffer(response.Body);
     const data = await pdf(buffer);
-    
+
     return {
       text: data.text,
-      pages: data.pages,
     };
   } catch (err) {
     console.error("Error fetching files:", err);

@@ -213,9 +213,19 @@ export function WorkspaceEditor({
   useEffect(() => {
     if (isCreating && pdfText) {
       const saveNewTemplateDoc = async () => {
+        const formData = new FormData();
+        formData.append("text", pdfText);
+
+        const response = await fetch("http://127.0.0.1:8000/parse_text", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        const content = data["html"];
         const doc = {
           title: pdfName || "New Template Document",
-          content: pdfText,
+          content: content,
           createdAt: new Date().toISOString(),
           lastModified: new Date().toISOString(),
           createdBy: currentUser.id,
@@ -223,8 +233,9 @@ export function WorkspaceEditor({
           sharedWith: [],
         };
 
-        await addDocument(doc, workspace._id);
         setDocuments((prev) => [doc, ...prev]);
+        await addDocument(doc, workspace._id);
+
         setIsCreating(false);
       };
 
