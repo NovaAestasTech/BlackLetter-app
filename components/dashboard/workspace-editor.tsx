@@ -267,7 +267,7 @@ export function WorkspaceEditor({
   if (selectedDoc) {
     (async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/ai/test-api", {
+        const res = await fetch("https://editor-gamma-murex.vercel.app/api/ai/test-api", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: selectedDoc.content }),
