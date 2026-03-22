@@ -274,7 +274,7 @@ export function WorkspaceEditor({
         });
 
         if (res.ok) {
-          window.location.href = "http://localhost:3001/";
+          window.location.href = "https://editor-gamma-murex.vercel.app/";
         }
       } catch (err) {
         console.error("Fetch error:", err);
