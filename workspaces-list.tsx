@@ -24,11 +24,7 @@ export function WorkspacesList({
   createWorkSpace,
 }: WorkspacesListProps) {
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-  const [Workspaces, setWorkspaces] = useState(workspaces);
 
-  useEffect(() => {
-    setWorkspaces(workspaces);
-  }, [workspaces]);
   if (selectedWorkspace) {
     return (
       <WorkspaceEditor
@@ -44,7 +40,7 @@ export function WorkspacesList({
       const res = await fetch(`/api/workspace?id=${id}`, {
         method: "DELETE",
       });
-      setWorkspaces((prev) => prev.filter((ws) => ws._id != id));
+      window.location.reload();
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message);
@@ -82,7 +78,7 @@ export function WorkspacesList({
       </button>
 
       {/* Workspace Cards */}
-      {Workspaces.map((workspace) => (
+      {workspaces.map((workspace) => (
         <div
           key={workspace._id}
           onClick={() => setSelectedWorkspace(workspace)}
