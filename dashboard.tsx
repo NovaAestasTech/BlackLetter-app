@@ -83,7 +83,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     setShowCreateWorkspace(false);
   };
 
-  const currentWorkspaces = activeTab === "all" ? workspaces : personalWorkSpace;
+  const currentWorkspaces = activeTab === "all" ? sharedWorkSpace : personalWorkSpace;
   const filteredWorkspaces = searchQuery
     ? currentWorkspaces.filter((ws) =>
         ws.name.toLowerCase().includes(searchQuery.toLowerCase())
