@@ -274,6 +274,7 @@ export function WorkspaceEditor({
         });
 
         if (res.ok) {
+          setSelectedDoc(null);
           window.location.href = "https://editor.blackletter.co.in/";
         }
       } catch (err) {
