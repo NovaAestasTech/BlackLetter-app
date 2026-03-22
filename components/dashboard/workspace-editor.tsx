@@ -267,14 +267,14 @@ export function WorkspaceEditor({
   if (selectedDoc) {
     (async () => {
       try {
-        const res = await fetch("https://editor-gamma-murex.vercel.app/api/ai/test-api", {
+        const res = await fetch("https://editor.blackletter.co.in//api/ai/test-api", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: selectedDoc.content }),
         });
 
         if (res.ok) {
-          window.location.href = "https://editor-gamma-murex.vercel.app/";
+          window.location.href = "https://editor.blackletter.co.in/";
         }
       } catch (err) {
         console.error("Fetch error:", err);
