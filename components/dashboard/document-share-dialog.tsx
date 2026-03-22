@@ -32,7 +32,7 @@ export function DocumentShareDialog({
   const [linkAccess, setLinkAccess] = useState<"view" | "edit">("view");
   const [shareMode, setShareMode] = useState<"members" | "link">("members");
 
-  const shareLink = `https://legalhub.app/documents/${document.id}/access/${Math.random().toString(36).substr(2, 12)}`;
+  const shareLink = `https://blackletter.co.in/documents/${document.id}/access/${Math.random().toString(36).substr(2, 12)}`;
 
   const handleToggleMember = (memberId: string) => {
     const newSelected = new Set(selectedMembers);
@@ -95,7 +95,7 @@ export function DocumentShareDialog({
               {workspaceMembers.map((member) => (
                 <Card
                   key={member.id}
-                  className="p-4 hover:shadow-md transition-shadow"
+                  className="p-4 hover:shadow-md transition-shadow border-border"
                 >
                   <div className="flex items-center gap-3">
                     <Checkbox
@@ -119,15 +119,15 @@ export function DocumentShareDialog({
             </div>
 
             {selectedMembers.size > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-blue-900">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                <p className="text-sm font-medium text-primary">
                   Sharing with {selectedMembers.size} member
                   {selectedMembers.size !== 1 ? "s" : ""}
                 </p>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
@@ -136,7 +136,7 @@ export function DocumentShareDialog({
                   handleSaveShare();
                   onOpenChange(false);
                 }}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Share Document
               </Button>
@@ -146,13 +146,13 @@ export function DocumentShareDialog({
           <TabsContent value="link" className="space-y-4 py-4">
             <div className="space-y-4">
               {/* Link Access Control */}
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-3">
-                <h3 className="font-semibold text-slate-900 text-sm">
+              <div className="bg-secondary rounded-lg p-4 border border-border space-y-3">
+                <h3 className="font-semibold text-foreground text-sm">
                   Link Access Level
                 </h3>
                 <div className="space-y-2">
                   <label
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-white cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-card cursor-pointer transition-colors"
                     onClick={() => setLinkAccess("view")}
                   >
                     <input
@@ -161,14 +161,14 @@ export function DocumentShareDialog({
                       onChange={() => setLinkAccess("view")}
                     />
                     <div>
-                      <p className="font-medium text-slate-900">View Only</p>
-                      <p className="text-xs text-slate-600">
+                      <p className="font-medium text-foreground">View Only</p>
+                      <p className="text-xs text-muted-foreground">
                         Recipients can only view the document
                       </p>
                     </div>
                   </label>
                   <label
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-white cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-card cursor-pointer transition-colors"
                     onClick={() => setLinkAccess("edit")}
                   >
                     <input
@@ -177,8 +177,8 @@ export function DocumentShareDialog({
                       onChange={() => setLinkAccess("edit")}
                     />
                     <div>
-                      <p className="font-medium text-slate-900">Can Edit</p>
-                      <p className="text-xs text-slate-600">
+                      <p className="font-medium text-foreground">Can Edit</p>
+                      <p className="text-xs text-muted-foreground">
                         Recipients can view and edit the document
                       </p>
                     </div>
@@ -187,16 +187,16 @@ export function DocumentShareDialog({
               </div>
 
               {/* Share Link */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 space-y-3">
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-4 border border-primary/20 space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Link2 className="w-4 h-4 text-blue-600" />
+                  <div className="bg-primary/15 p-2 rounded-lg">
+                    <Link2 className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-foreground">
                       Shareable Link
                     </p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-muted-foreground">
                       Anyone with this link can access the document
                     </p>
                   </div>
@@ -206,7 +206,7 @@ export function DocumentShareDialog({
                   <Input
                     value={shareLink}
                     readOnly
-                    className="bg-white font-mono text-sm text-slate-700"
+                    className="bg-input font-mono text-sm text-foreground"
                   />
                   <Button
                     variant="outline"
@@ -215,7 +215,7 @@ export function DocumentShareDialog({
                     className="gap-2 whitespace-nowrap bg-transparent"
                   >
                     {copied ? (
-                      <Check className="w-4 h-4 text-green-600" />
+                      <Check className="w-4 h-4 text-emerald-400" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -225,29 +225,29 @@ export function DocumentShareDialog({
               </div>
 
               {/* Link Preview Card */}
-              <Card className="p-4 bg-slate-50 border-slate-200">
+              <Card className="p-4 bg-secondary border-border">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="bg-amber-100 p-2 rounded-lg flex-shrink-0">
-                      <Globe className="w-4 h-4 text-amber-600" />
+                    <div className="bg-amber-500/15 p-2 rounded-lg flex-shrink-0">
+                      <Globe className="w-4 h-4 text-amber-400" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-slate-900">Link Preview</p>
-                      <p className="text-sm text-slate-600 mt-1">
+                      <p className="font-medium text-foreground">Link Preview</p>
+                      <p className="text-sm text-muted-foreground mt-1">
                         When someone opens this link, they'll see:
                       </p>
                     </div>
                   </div>
 
                   {/* Preview Box */}
-                  <div className="bg-white rounded-lg border border-slate-200 p-3 space-y-2">
+                  <div className="bg-card rounded-lg border border-border p-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <p className="font-semibold text-slate-900 text-sm">
+                      <div className="w-3 h-3 rounded-full bg-primary"></div>
+                      <p className="font-semibold text-foreground text-sm">
                         {document.title}
                       </p>
                     </div>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-muted-foreground">
                       Shared document •{" "}
                       {linkAccess === "view" ? "View only" : "Can edit"}
                     </p>
@@ -256,14 +256,14 @@ export function DocumentShareDialog({
               </Card>
 
               {/* Permissions Info */}
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-2">
+              <div className="bg-secondary rounded-lg p-4 border border-border space-y-2">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-slate-600" />
-                  <p className="text-sm font-medium text-slate-900">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">
                     Privacy & Security
                   </p>
                 </div>
-                <ul className="text-xs text-slate-600 space-y-1 ml-6">
+                <ul className="text-xs text-muted-foreground space-y-1 ml-6">
                   <li>• Only people with the link can access</li>
                   <li>• Link access can be revoked anytime</li>
                   <li>• All edits are tracked in version history</li>
@@ -271,7 +271,7 @@ export function DocumentShareDialog({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Done
               </Button>

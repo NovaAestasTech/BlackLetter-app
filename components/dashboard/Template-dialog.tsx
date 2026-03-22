@@ -56,28 +56,28 @@ export function TemplatesDialog({
               key={template.id}
               className={`cursor-pointer transition-all ${
                 selectedTemplate?.id === template.id
-                  ? "border-blue-500 border-2 bg-blue-50"
-                  : "border-slate-200 hover:border-blue-300 hover:shadow-md"
+                  ? "border-primary border-2 bg-primary/10"
+                  : "border-border hover:border-primary/40 hover:shadow-md"
               }`}
               onClick={() => handleSelectTemplate(template)}
             >
               <CardContent className="pt-4">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-lg flex-shrink-0">
-                    <FileText className="w-6 h-6 text-blue-600" />
+                  <div className="bg-primary/15 p-3 rounded-lg flex-shrink-0">
+                    <FileText className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">
+                    <h3 className="font-semibold text-foreground">
                       {template.name}
                     </h3>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {template.description}
                     </p>
                   </div>
                   {selectedTemplate?.id === template.id && (
-                    <div className="flex-shrink-0 bg-blue-500 rounded-full p-1">
+                    <div className="flex-shrink-0 bg-primary rounded-full p-1">
                       <svg
-                        className="w-5 h-5 text-white"
+                        className="w-5 h-5 text-primary-foreground"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -95,18 +95,18 @@ export function TemplatesDialog({
           ))}
         </div>
 
-        <div className="flex gap-2 justify-end pt-4 border-t border-slate-200">
+        <div className="flex gap-2 justify-end pt-4 border-t border-border">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-slate-300"
+            className="border-border"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!selectedTemplate}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
           >
             Use Template
           </Button>

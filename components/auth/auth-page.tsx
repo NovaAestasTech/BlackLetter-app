@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 interface AuthPageProps {
   onAuth: (user: any) => void;
@@ -50,34 +50,46 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50 dark:from-slate-950 dark:via-slate-950 dark:to-blue-950 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo Section */}
       <div className="mb-8 flex items-center gap-3">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-3 rounded-lg shadow-lg">
-          <FileText className="w-6 h-6" />
-        </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-          LegalHub
+        <svg
+          className="w-10 h-10 text-primary"
+          viewBox="0 0 40 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="40" height="40" rx="8" fill="currentColor" fillOpacity="0.15" />
+          <path
+            d="M12 10h4v20h-4V10zm6 0h4v20h-4V10zm6 0h4v20h-4V10z"
+            fill="currentColor"
+            fillOpacity="0.6"
+          />
+          <rect x="10" y="14" width="20" height="2" rx="1" fill="currentColor" />
+          <rect x="10" y="24" width="20" height="2" rx="1" fill="currentColor" />
+        </svg>
+        <h1 className="text-3xl font-bold text-primary">
+          BlackLetter
         </h1>
       </div>
 
       {/* Auth Card */}
-      <Card className="w-full max-w-md shadow-lg border-slate-200">
+      <Card className="w-full max-w-md shadow-2xl border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl text-card-foreground">
             {isLogin ? "Sign In" : "Create Account"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             {isLogin
               ? "Access your legal agreements and workspaces"
-              : "Join LegalHub to start collaborating"}
+              : "Join BlackLetter to start collaborating"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="text-sm font-semibold text-slate-900 mb-2 block">
+                <label className="text-sm font-semibold text-foreground mb-2 block">
                   Full Name
                 </label>
                 <Input
@@ -85,13 +97,13 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
+                  className="w-full bg-input border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             )}
 
             <div>
-              <label className="text-sm font-semibold text-slate-900 mb-2 block">
+              <label className="text-sm font-semibold text-foreground mb-2 block">
                 Email
               </label>
               <Input
@@ -99,12 +111,12 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
+                className="w-full bg-input border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-slate-900 mb-2 block">
+              <label className="text-sm font-semibold text-foreground mb-2 block">
                 Password
               </label>
               <Input
@@ -112,26 +124,26 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
+                className="w-full bg-input border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-200">
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20">
                 {error}
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-10"
             >
               {isLogin ? "Sign In" : "Create Account"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               {isLogin
                 ? "Don't have an account? "
                 : "Already have an account? "}
@@ -140,7 +152,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                   setIsLogin(!isLogin);
                   setError("");
                 }}
-                className="text-blue-600 hover:text-blue-700 font-semibold"
+                className="text-primary hover:text-primary/80 font-semibold"
               >
                 {isLogin ? "Sign Up" : "Sign In"}
               </button>
@@ -152,27 +164,27 @@ export function AuthPage({ onAuth }: AuthPageProps) {
       {/* Info Section */}
       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
         <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
+          <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <CheckCircle2 className="w-6 h-6 text-primary" />
           </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Templates</h3>
-          <p className="text-sm text-slate-600">
+          <h3 className="font-semibold text-foreground mb-1">Templates</h3>
+          <p className="text-sm text-muted-foreground">
             Professional legal agreement templates
           </p>
         </div>
         <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
+          <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <CheckCircle2 className="w-6 h-6 text-primary" />
           </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Collaborate</h3>
-          <p className="text-sm text-slate-600">Work together in real-time</p>
+          <h3 className="font-semibold text-foreground mb-1">Collaborate</h3>
+          <p className="text-sm text-muted-foreground">Work together in real-time</p>
         </div>
         <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
+          <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <CheckCircle2 className="w-6 h-6 text-primary" />
           </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Secure</h3>
-          <p className="text-sm text-slate-600">Enterprise-grade security</p>
+          <h3 className="font-semibold text-foreground mb-1">Secure</h3>
+          <p className="text-sm text-muted-foreground">Enterprise-grade security</p>
         </div>
       </div>
     </div>

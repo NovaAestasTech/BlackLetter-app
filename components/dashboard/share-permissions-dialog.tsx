@@ -76,7 +76,7 @@ export function SharePermissionsDialog({
     setRole("editor");
   };
 
-  const shareLink = `https://legalhub.app/join/${Math.random()
+  const shareLink = `https://blackletter.co.in/join/${Math.random()
     .toString(36)
     .substr(2, 9)}`;
 

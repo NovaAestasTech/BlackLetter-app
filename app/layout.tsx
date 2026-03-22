@@ -10,7 +10,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LegalHub - Legal Agreement Dashboard",
+  title: "BlackLetter - Legal Agreement Dashboard",
   description:
     "Professional legal agreement management with real-time collaboration",
   generator: "v0.app",

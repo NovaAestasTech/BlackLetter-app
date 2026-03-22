@@ -117,7 +117,7 @@ What would you like to know about this agreement?`,
       {!isOpen && (
         <button
           onClick={onToggle}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-white z-40 hover:scale-110"
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-primary-foreground z-40 hover:scale-110"
           aria-label="Open agreement assistant"
         >
           <MessageCircle className="w-6 h-6" />
@@ -126,23 +126,23 @@ What would you like to know about this agreement?`,
 
       {/* Chatbot Panel */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-lg shadow-2xl flex flex-col border border-slate-200 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-card rounded-lg shadow-2xl flex flex-col border border-border z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100">
+          <div className="flex items-center justify-between p-4 border-b border-border bg-secondary">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                <Lightbulb className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <Lightbulb className="w-4 h-4 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 text-sm">
+                <h3 className="font-semibold text-foreground text-sm">
                   AI Assistant
                 </h3>
-                <p className="text-xs text-slate-600">Agreement Analyzer</p>
+                <p className="text-xs text-muted-foreground">Agreement Analyzer</p>
               </div>
             </div>
             <button
               onClick={onToggle}
-              className="text-slate-500 hover:text-slate-700 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <MessageCircle className="w-5 h-5" />
             </button>
@@ -158,15 +158,15 @@ What would you like to know about this agreement?`,
                 <div
                   className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
                     message.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-slate-100 text-slate-900 rounded-bl-none"
+                      ? "bg-primary text-primary-foreground rounded-br-none"
+                      : "bg-secondary text-foreground rounded-bl-none"
                   }`}
                 >
                   <p className="whitespace-pre-wrap leading-relaxed">
                     {message.content}
                   </p>
                   <p
-                    className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-slate-600"}`}
+                    className={`text-xs mt-1 ${message.role === "user" ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                   >
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -178,10 +178,10 @@ What would you like to know about this agreement?`,
                 {message.role === "assistant" && (
                   <button
                     onClick={() => copyToClipboard(message.content)}
-                    className="ml-2 mt-1 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="ml-2 mt-1 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {copied ? (
-                      <Check className="w-4 h-4 text-green-600" />
+                      <Check className="w-4 h-4 text-emerald-400" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -192,15 +192,15 @@ What would you like to know about this agreement?`,
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-slate-100 text-slate-900 px-4 py-2 rounded-lg rounded-bl-none">
+                <div className="bg-secondary text-foreground px-4 py-2 rounded-lg rounded-bl-none">
                   <div className="flex gap-2">
-                    <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" />
                     <div
-                      className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
                       style={{ animationDelay: "0.2s" }}
                     />
                     <div
-                      className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
                       style={{ animationDelay: "0.4s" }}
                     />
                   </div>
@@ -211,7 +211,7 @@ What would you like to know about this agreement?`,
           </ScrollArea>
 
           {/* Input Area */}
-          <div className="border-t border-slate-200 p-4 space-y-3 bg-slate-50">
+          <div className="border-t border-border p-4 space-y-3 bg-secondary">
             {/* Quick Actions */}
             {messages.length === 1 && (
               <div className="grid grid-cols-2 gap-2">
@@ -219,7 +219,7 @@ What would you like to know about this agreement?`,
                   onClick={() => {
                     setInput("Summarize this agreement");
                   }}
-                  className="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 transition-colors text-left"
+                  className="text-xs px-3 py-2 rounded-lg bg-card border border-border text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
                 >
                   Summarize
                 </button>
@@ -227,7 +227,7 @@ What would you like to know about this agreement?`,
                   onClick={() => {
                     setInput("What are the key obligations?");
                   }}
-                  className="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 transition-colors text-left"
+                  className="text-xs px-3 py-2 rounded-lg bg-card border border-border text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
                 >
                   Key Points
                 </button>
@@ -235,7 +235,7 @@ What would you like to know about this agreement?`,
                   onClick={() => {
                     setInput("Identify any risks or unusual clauses");
                   }}
-                  className="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 transition-colors text-left"
+                  className="text-xs px-3 py-2 rounded-lg bg-card border border-border text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
                 >
                   Risk Analysis
                 </button>
@@ -243,7 +243,7 @@ What would you like to know about this agreement?`,
                   onClick={() => {
                     setInput("Suggest improvements to this document");
                   }}
-                  className="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 transition-colors text-left"
+                  className="text-xs px-3 py-2 rounded-lg bg-card border border-border text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
                 >
                   Suggestions
                 </button>
@@ -262,13 +262,13 @@ What would you like to know about this agreement?`,
                   }
                 }}
                 placeholder="Ask about the agreement..."
-                className="flex-1 bg-white border-slate-300 text-sm focus:border-blue-500"
+                className="flex-1 bg-input border-border text-sm focus:border-primary text-foreground placeholder:text-muted-foreground"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="bg-blue-600 hover:bg-blue-700 px-3"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-3"
                 size="sm"
               >
                 {isLoading ? (
@@ -278,7 +278,7 @@ What would you like to know about this agreement?`,
                 )}
               </Button>
             </div>
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               Shift + Enter for new line
             </p>
           </div>

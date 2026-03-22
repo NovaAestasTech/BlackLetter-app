@@ -2,13 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
@@ -283,86 +276,94 @@ export function WorkspaceEditor({
     })();
   }
 
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return new Date(dateStr).toLocaleDateString();
+  };
+
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
+      <button
         onClick={onBack}
-        className="gap-2 text-slate-600 hover:text-slate-900"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Workspaces
-      </Button>
+      </button>
 
-      {/* Workspace Header Card */}
-      <Card className="border-slate-200 bg-gradient-to-br from-white to-blue-50">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-3xl text-slate-900">
-                {workspace.name}
-              </CardTitle>
-              <CardDescription className="text-slate-600 mt-2">
-                {workspace.description}
-              </CardDescription>
-            </div>
-            <Button
-              onClick={() => setShowShareDialog(true)}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Share2 className="w-4 h-4" />
-              Manage Access
-            </Button>
+      {/* Workspace Header */}
+      <div className="bg-card border border-border rounded-xl p-6">
+        <div className="flex items-start justify-between mb-5">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {workspace.name}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {workspace.description}
+            </p>
           </div>
-        </CardHeader>
+          <Button
+            onClick={() => setShowShareDialog(true)}
+            className="gap-2 bg-secondary hover:bg-muted text-foreground border border-border rounded-lg"
+          >
+            <Share2 className="w-4 h-4" />
+            Manage Access
+          </Button>
+        </div>
 
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Members</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {workspaceMembers.length}
-                </p>
-              </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+              <Users className="w-3.5 h-3.5 text-foreground" />
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Documents</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {documents.length}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-emerald-100 p-2 rounded-lg">
-                <Clock className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Created</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {new Date(workspace.createdAt).toLocaleDateString()}
-                </p>
-              </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Members</p>
+              <p className="text-sm font-semibold text-foreground">
+                {workspaceMembers.length}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="w-px h-8 bg-border" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+              <FileText className="w-3.5 h-3.5 text-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Documents</p>
+              <p className="text-sm font-semibold text-foreground">
+                {documents.length}
+              </p>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-border" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5 text-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Created</p>
+              <p className="text-sm font-semibold text-foreground">
+                {new Date(workspace.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <TemplatesDialog
         open={openTemplate}
         onOpenChange={setopenTemplate}
         onSelectTemplate={createTemplate}
       />
 
-      {/* Share Dialog */}
       <SharePermissionsDialog
         open={showShareDialog}
         onOpenChange={setShowShareDialog}
@@ -376,184 +377,167 @@ export function WorkspaceEditor({
       {/* Documents Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">Documents</h2>
+          <h2 className="text-lg font-semibold text-foreground">Documents</h2>
           <div className="flex gap-2">
             <Button
               onClick={() => setShowFileUpload(true)}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              className="gap-2 bg-secondary hover:bg-muted text-foreground border border-border rounded-lg text-sm h-9"
             >
-              <Upload className="w-4 h-4" />
-              Upload File
+              <Upload className="w-3.5 h-3.5" />
+              Upload
             </Button>
             <Button
               onClick={() => setShowNewDoc(!showNewDoc)}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
+              className="gap-2 bg-secondary hover:bg-muted text-foreground border border-border rounded-lg text-sm h-9"
             >
-              <Plus className="w-4 h-4" />
-              New Document
+              <Plus className="w-3.5 h-3.5" />
+              New Doc
             </Button>
             <Button
               onClick={() => callTemplates()}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
+              className="gap-2 bg-primary text-primary-foreground border border-primary hover:opacity-90 rounded-lg text-sm h-9 transition-opacity"
             >
-              <Plus className="w-4 h-4" />
-              Use Template
+              <Plus className="w-3.5 h-3.5" />
+              Template
             </Button>
           </div>
         </div>
 
         {showNewDoc && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-6 space-y-4">
-              <Input
-                placeholder="Document title (e.g., Service Agreement Draft)"
-                value={newDocTitle}
-                onChange={(e) => setNewDocTitle(e.target.value)}
-                className="bg-white border-blue-300 focus:border-blue-500"
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleCreateDocument}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Create
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowNewDoc(false)}
-                  className="border-slate-300"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <Input
+              placeholder="Document title (e.g., Service Agreement Draft)"
+              value={newDocTitle}
+              onChange={(e) => setNewDocTitle(e.target.value)}
+              className="bg-background border-border text-foreground placeholder:text-muted-foreground mb-3 focus:border-primary/50"
+            />
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCreateDocument}
+                className="bg-primary hover:opacity-90 text-primary-foreground font-medium text-sm h-9 transition-opacity"
+              >
+                Create
+              </Button>
+              <Button
+                onClick={() => setShowNewDoc(false)}
+                className="bg-secondary hover:bg-muted text-foreground border border-border text-sm h-9"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
 
         {documents.length === 0 ? (
-          <Card className="border-dashed border-2 border-slate-300 bg-slate-50">
-            <CardContent className="pt-12 pb-12 text-center space-y-4">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-              <div>
-                <p className="text-slate-900 font-semibold">No documents yet</p>
-                <p className="text-slate-600 text-sm mt-1">
-                  Create a new document or upload a file to start collaborating
-                </p>
-              </div>
-              <div className="flex gap-2 justify-center">
-                <Button
-                  onClick={() => setShowNewDoc(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Create Document
-                </Button>
-                <Button
-                  onClick={() => setShowFileUpload(true)}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload File
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="border-2 border-dashed border-border rounded-xl p-12 text-center">
+            <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-foreground font-medium mb-1">No documents yet</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Create a new document or upload a file to start
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => setShowNewDoc(true)}
+                className="bg-primary hover:opacity-90 text-primary-foreground font-medium text-sm transition-opacity"
+              >
+                Create Document
+              </Button>
+              <Button
+                onClick={() => setShowFileUpload(true)}
+                className="gap-2 bg-secondary hover:bg-muted text-foreground border border-border text-sm"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload
+              </Button>
+            </div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {documents.map((doc) => {
               const activeCount = doc.activeUsers?.length || 0;
               const isUploadedFile = doc.fileType && doc.fileType !== "text";
               return (
-                <Card
+                <div
                   key={doc._id}
-                  className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-slate-200 bg-white"
+                  className="group bg-card border border-border rounded-xl p-5 hover:border-muted-foreground/30 hover:bg-secondary/40 transition-all duration-200 flex flex-col"
                 >
-                  <div
-                    className={`h-16 flex items-center justify-between px-6 bg-gradient-to-br ${
-                      isUploadedFile
-                        ? "from-emerald-500 to-emerald-600"
-                        : "from-blue-500 to-blue-600"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-white" />
+                  {/* Top Row */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-secondary`}>
+                        <FileText className={`w-3.5 h-3.5 text-muted-foreground`} />
+                      </div>
                       {isUploadedFile && (
-                        <span className="text-xs font-semibold text-white bg-white/20 px-2 py-1 rounded-full uppercase">
+                        <span className="text-[10px] font-semibold text-foreground bg-secondary border border-border px-1.5 py-0.5 rounded uppercase tracking-wider">
                           {doc.fileType}
                         </span>
                       )}
-                    </div>
-                    {activeCount > 0 && (
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
-                        <Users2 className="w-3 h-3" />
-                        {activeCount} editing
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="pt-5 pb-5 space-y-4">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-slate-900 text-lg leading-tight">
-                        {doc.title}
-                      </h3>
-                      <p className="text-xs text-slate-500">
-                        Created {new Date(doc.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <p className="text-sm text-slate-600 line-clamp-2">
-                      {doc.content || "No content yet"}
-                    </p>
-
-                    {doc.sharedWith && doc.sharedWith.length > 0 && (
-                      <div className="flex items-center gap-2 pt-2 pb-2 border-t border-slate-200">
-                        <Users2 className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-medium text-slate-700">
-                          Shared with {doc.sharedWith.length}{" "}
-                          {doc.sharedWith.length === 1 ? "person" : "people"}
+                      {activeCount > 0 && (
+                        <span className="flex items-center gap-1 text-[10px] text-primary-foreground bg-primary px-1.5 py-0.5 rounded">
+                          <Users2 className="w-2.5 h-2.5" />
+                          {activeCount}
                         </span>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md transition-all group-hover:shadow-lg"
-                        size="sm"
-                        onClick={() => {
-                          setDocumentContent(doc.content);
-                          setDocumentTitle(doc.title);
-                          setSelectedDoc(doc);
-                        }}
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleShareDocument(doc.id)}
-                        className="gap-2 border-slate-300 hover:bg-blue-50"
-                      >
-                        <Share2 className="w-4 h-4" />
-                        Share
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-slate-300 bg-transparent"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-slate-700">
-                            <Copy className="w-4 h-4" />
-                            <span>Duplicate</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-card border-border">
+                        <DropdownMenuItem className="gap-2 cursor-pointer text-foreground focus:bg-secondary">
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Duplicate</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Doc Info */}
+                  <h3 className="font-semibold text-foreground text-[15px] mb-1">
+                    {doc.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+                    {doc.content || "No content yet"}
+                  </p>
+
+                  {doc.sharedWith && doc.sharedWith.length > 0 && (
+                    <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
+                      <Users2 className="w-3 h-3 text-foreground" />
+                      <span>
+                        Shared with {doc.sharedWith.length}{" "}
+                        {doc.sharedWith.length === 1 ? "person" : "people"}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-border/60">
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg bg-primary hover:opacity-90 text-primary-foreground text-sm font-medium transition-opacity"
+                      onClick={() => {
+                        setDocumentContent(doc.content);
+                        setDocumentTitle(doc.title);
+                        setSelectedDoc(doc);
+                      }}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open
+                    </button>
+                    <button
+                      onClick={() => handleShareDocument(doc.id)}
+                      className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground text-sm border border-border transition-colors"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      Share
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -566,7 +550,6 @@ export function WorkspaceEditor({
         onFileUpload={handleFileUpload}
       />
 
-      {/* Document Share Dialog */}
       {selectedDocToShare && (
         <DocumentShareDialog
           open={showDocumentShare}

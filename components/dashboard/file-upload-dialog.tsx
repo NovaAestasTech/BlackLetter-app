@@ -88,7 +88,7 @@ export function FileUploadDialog({
         <div className="space-y-6">
           {/* File Upload Area */}
           <div
-            className="relative border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer group"
+            className="relative border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer group"
             onClick={() => document.getElementById("file-input")?.click()}
           >
             <input
@@ -99,20 +99,20 @@ export function FileUploadDialog({
               className="hidden"
               disabled={isProcessing}
             />
-            <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
-            <p className="font-semibold text-slate-900 mb-1">
+            <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-primary transition-colors" />
+            <p className="font-semibold text-foreground mb-1">
               Drop file here or click to browse
             </p>
-            <p className="text-xs text-slate-500">PDF or DOCX up to 10MB</p>
+            <p className="text-xs text-muted-foreground">PDF or DOCX up to 10MB</p>
           </div>
 
           {/* Selected File Display */}
           {selectedFile && (
-            <Card className="bg-blue-50 border-blue-200 p-4">
+            <Card className="bg-primary/10 border-primary/20 p-4">
               <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <FileText className="w-5 h-5 text-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {selectedFile.name}
                   </p>
                 </div>
@@ -122,7 +122,7 @@ export function FileUploadDialog({
 
           {/* File Title Input */}
           <div>
-            <label className="text-sm font-medium text-slate-900 mb-2 block">
+            <label className="text-sm font-medium text-foreground mb-2 block">
               Document Title
             </label>
             <Input
@@ -130,14 +130,15 @@ export function FileUploadDialog({
               value={fileTitle}
               onChange={(e) => setFileTitle(e.target.value)}
               disabled={isProcessing}
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="flex gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="flex gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
@@ -158,7 +159,7 @@ export function FileUploadDialog({
             <Button
               onClick={handleUpload}
               disabled={!selectedFile || !fileTitle.trim() || isProcessing}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isProcessing ? (
                 <>

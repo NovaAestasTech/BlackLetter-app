@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   FileText,
-  Users,
   Clock,
-  ArrowRight,
   MoreVertical,
   Trash2,
+  Plus,
 } from "lucide-react";
 import { WorkspaceEditor } from "./workspace-editor";
 import {
@@ -37,14 +35,6 @@ export function WorkspacesList({
     );
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
   const deleteWorkSpace = async (id: string) => {
     try {
       const res = await fetch(`/api/workspace?id=${id}`, {
@@ -59,108 +49,97 @@ export function WorkspacesList({
     }
   };
 
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    const weeks = Math.floor(days / 7);
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    if (days < 7) return `${days} day${days !== 1 ? "s" : ""} ago`;
+    return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
+  };
+
   return (
-    <div>
-      {Workspaces.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Workspaces.map((workspace) => (
-            <Card
-              key={workspace._id}
-              className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-slate-200 bg-white cursor-pointer hover:border-blue-300"
-              onClick={() => setSelectedWorkspace(workspace)}
-            >
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 h-20 flex items-center justify-between px-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-lg backdrop-blur-sm">
-                    {getInitials(workspace.name)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-sm">
-                      {workspace.name}
-                    </h3>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    asChild
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-white/20"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      className="gap-2 cursor-pointer text-red-600"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteWorkSpace(workspace._id);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <CardContent className="pt-5 pb-5 space-y-4">
-                <p className="text-sm text-slate-600 line-clamp-2">
-                  {workspace.description}
-                </p>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Users className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium">
-                      {workspace.members.length} member
-                      {workspace.members.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>
-                      Modified{" "}
-                      {new Date(workspace.lastModified).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setSelectedWorkspace(workspace)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md transition-all group-hover:shadow-lg"
-                  size="sm"
-                >
-                  Open Workspace
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* New Workspace Card */}
+      <button
+        onClick={createWorkSpace}
+        className="group border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-secondary/50 transition-all duration-200 min-h-[180px] cursor-pointer"
+      >
+        <div className="w-12 h-12 rounded-lg border-2 border-border flex items-center justify-center group-hover:border-primary/50 transition-colors">
+          <Plus className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
         </div>
-      ) : (
-        <Card className="border-dashed border-2 border-slate-300 bg-slate-50">
-          <CardContent className="pt-12 pb-12 text-center space-y-4">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-            <div>
-              <p className="text-slate-900 font-semibold">No workspaces yet</p>
-              <p className="text-slate-600 text-sm mt-1">
-                Create your first workspace to start collaborating
-              </p>
+        <span className="text-sm text-muted-foreground group-hover:text-primary font-medium">
+          New Workspace
+        </span>
+      </button>
+
+      {/* Workspace Cards */}
+      {Workspaces.map((workspace) => (
+        <div
+          key={workspace._id}
+          onClick={() => setSelectedWorkspace(workspace)}
+          className="group bg-card border border-border rounded-xl p-5 hover:border-muted-foreground/30 hover:bg-secondary/40 transition-all duration-200 cursor-pointer min-h-[180px] flex flex-col"
+        >
+          {/* Top Row: Icon + Menu */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
+              <FileText className="w-4 h-4" />
             </div>
-            <Button
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={createWorkSpace}
-            >
-              Create Workspace
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                asChild
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-card border-border">
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteWorkSpace(workspace._id);
+                  }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Workspace Info */}
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground text-[15px] mb-1.5">
+              {workspace.name}
+            </h3>
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              {workspace.description || "No description"}
+            </p>
+          </div>
+
+          {/* Bottom Row: Stats */}
+          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/60">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <FileText className="w-3 h-3" />
+              <span>{workspace.documents?.length || 0} docs</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              <span>{formatTimeAgo(workspace.lastModified)}</span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
