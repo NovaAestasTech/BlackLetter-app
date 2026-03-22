@@ -136,7 +136,7 @@ export function WorkspaceEditor({
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://127.0.0.1:8000/parse_pdf", {
+      const response = await fetch("https://python-parser-mkqr.onrender.com/parse_pdf", {
         method: "POST",
         body: formData,
       });
@@ -216,7 +216,7 @@ export function WorkspaceEditor({
         const formData = new FormData();
         formData.append("text", pdfText);
 
-        const response = await fetch("http://127.0.0.1:8000/parse_text", {
+        const response = await fetch("https://python-parser-mkqr.onrender.com/parse_text", {
           method: "POST",
           body: formData,
         });
