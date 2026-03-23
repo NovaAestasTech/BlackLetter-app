@@ -79,8 +79,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-2.5 rounded-lg shadow-lg">
-                <FileText className="w-5 h-5" />
+               <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-md border border-white/50">
+                <img src="/Matte1.png" className="w-8 h-8 object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">BlackLetter</h1>
