@@ -83,7 +83,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">LegalHub</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Blackletter</h1>
                 <p className="text-sm text-slate-500">
                   Professional Agreement Dashboard
                 </p>
