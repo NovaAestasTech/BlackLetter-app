@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/db/db";
-import WorkSpaces from "@/db/Model";
+import WorkSpaces, { Users } from "@/db/Model";
+import mongoose from "mongoose";
 export async function DELETE(req: Request) {
   try {
     await connectToDatabase();
@@ -29,11 +30,16 @@ export async function DELETE(req: Request) {
     throw new Error("Unidentified Error");
   }
 }
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectToDatabase();
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    const userMail = searchParams.get("userMail");
 
-    const workspaces = await WorkSpaces.find({});
+    const workspaces = await WorkSpaces.find({
+      $or: [{ owner: userId }, { "members.email": userMail }],
+    });
 
     return NextResponse.json(workspaces, { status: 200 });
   } catch (error) {
@@ -47,11 +53,26 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     await connectToDatabase();
-    const data = await request.json();
-    const workspace = await WorkSpaces.create(data);
+    const { workspaces: workspaceData, user } = await request.json();
 
-    return NextResponse.json(workspace, { status: 201 });
+    if (!user?.id) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const newWorkspace = await WorkSpaces.create(workspaceData);
+
+    const updatedUser = await Users.findByIdAndUpdate(
+      user.id,
+      { $addToSet: { workspaces: newWorkspace._id } },
+      { new: true },
+    );
+
+    return NextResponse.json(updatedUser, { status: 201 });
   } catch (error) {
+    console.error("POST Error:", error);
     return NextResponse.json(
       { error: "Failed to create workspace" },
       { status: 500 },

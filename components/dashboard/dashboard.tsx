@@ -18,9 +18,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   useEffect(() => {
     const workspaces = async () => {
       try {
-        const data = await fetch("/api/workspace", {
-          method: "GET",
-        });
+        const data = await fetch(
+          `/api/workspace?userId=${user.id}&userMail=${encodeURIComponent(user.email)}`,
+          {
+            method: "GET",
+          },
+        );
         const res = await data.json();
 
         setWorkspaces(res);
@@ -44,12 +47,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
   const addNewWorkSpace = async (workspace: WorkSpace) => {
     try {
-      const res = await fetch("api/workspace", {
+      const res = await fetch("/api/workspace", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(workspace),
+        body: JSON.stringify({ workspaces: workspace, user: user }),
       });
       const data = await res.json();
       return data;
@@ -58,12 +61,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     }
   };
   const handleCreateWorkspace = async (data: any) => {
+    console.log(user);
     const newWorkspace: WorkSpace = {
       name: data.name,
       description: data.description,
       createdAt: new Date().toISOString(),
       owner: user.id,
-      members: [user.id],
+      members: [],
       documents: [],
       sharewith: [],
       lastModified: new Date().toISOString(),
@@ -79,11 +83,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-               <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-md border border-white/50">
+              <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-md border border-white/50">
                 <img src="/Matte1.png" className="w-8 h-8 object-contain" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">BlackLetter</h1>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  BlackLetter
+                </h1>
                 <p className="text-sm text-slate-500">
                   Professional Agreement Dashboard
                 </p>
@@ -92,10 +98,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">
-                  {user.name}
+                <p className="text-xs text-slate-500">
+                  {user.email.split("@")[0].toUpperCase()}
                 </p>
-                <p className="text-xs text-slate-500">{user.email}</p>
               </div>
               <Button
                 variant="ghost"

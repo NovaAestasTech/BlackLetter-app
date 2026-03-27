@@ -40,6 +40,7 @@ export interface SharePermissionsDialogProps {
   onRemoveMember: (memberId: string) => void;
   onUpdateRole: (memberId: string, role: string) => void;
   currentUser: any;
+  workspace: any;
 }
 
 export interface FileUploadDialogProps {

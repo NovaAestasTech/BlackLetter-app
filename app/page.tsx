@@ -1,40 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AuthPage } from "@/components/auth/auth-page";
 import { Dashboard } from "@/components/dashboard/dashboard";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
-  console.log(user);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("legal_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
-
-  if (isLoading) {
+  if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex h-screen items-center justify-center">
+        Loading...
       </div>
     );
   }
 
-  return user ? (
-    <Dashboard
-      user={user}
-      onLogout={() => {
-        localStorage.removeItem("legal_user");
-        setUser(null);
-      }}
-    />
-  ) : (
-    <AuthPage onAuth={setUser} />
-  );
+  if (status === "authenticated" && session) {
+    return (
+      <Dashboard
+        user={session.user}
+        onLogout={() => signOut({ callbackUrl: "/" })}
+      />
+    );
+  }
+
+  return <AuthPage />;
 }

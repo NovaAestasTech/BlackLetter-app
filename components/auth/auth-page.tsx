@@ -11,20 +11,19 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { signIn as nextAuthSignIn } from "next-auth/react";
 import { FileText, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-interface AuthPageProps {
-  onAuth: (user: any) => void;
-}
-
-export function AuthPage({ onAuth }: AuthPageProps) {
+export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -33,20 +32,41 @@ export function AuthPage({ onAuth }: AuthPageProps) {
       return;
     }
 
-    if (!isLogin && !name) {
-      setError("Please enter your name");
-      return;
+    try {
+      if (isLogin) {
+        const result = await nextAuthSignIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
+        if (result?.error) {
+          setError("Invalid email or password");
+        } else {
+          router.push("/");
+        }
+      } else {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Registration failed");
+        } else {
+          await nextAuthSignIn("credentials", {
+            email,
+            password,
+            callbackUrl: "/",
+          });
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentified Error");
     }
-
-    const user = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      name: isLogin ? email.split("@")[0] : name,
-      createdAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("legal_user", JSON.stringify(user));
-    onAuth(user);
   };
 
   return (

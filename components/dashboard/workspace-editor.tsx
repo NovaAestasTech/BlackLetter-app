@@ -60,7 +60,7 @@ export function WorkspaceEditor({
   const [isCreating, setIsCreating] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState([
     {
-      id: workspace.owner,
+      id: workspace._id,
       email: currentUser.email,
       name: currentUser.name,
       role: "owner",
@@ -136,10 +136,13 @@ export function WorkspaceEditor({
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("https://python-parser-mkqr.onrender.com/parse_pdf", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://python-parser-mkqr.onrender.com/parse_pdf",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       const data = await response.json();
       const content = data["html"];
 
@@ -216,10 +219,13 @@ export function WorkspaceEditor({
         const formData = new FormData();
         formData.append("text", pdfText);
 
-        const response = await fetch("https://python-parser-mkqr.onrender.com/parse_text", {
-          method: "POST",
-          body: formData,
-        });
+        const response = await fetch(
+          "https://python-parser-mkqr.onrender.com/parse_text",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
         const data = await response.json();
         const content = data["html"];
@@ -267,11 +273,14 @@ export function WorkspaceEditor({
   if (selectedDoc) {
     (async () => {
       try {
-        const res = await fetch("https://editor.blackletter.co.in/api/ai/test-api", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: selectedDoc.content }),
-        });
+        const res = await fetch(
+          "https://editor.blackletter.co.in/api/ai/test-api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: selectedDoc.content }),
+          },
+        );
 
         if (res.ok) {
           setSelectedDoc(null);
@@ -371,6 +380,7 @@ export function WorkspaceEditor({
         onRemoveMember={handleRemoveMember}
         onUpdateRole={handleUpdateMemberRole}
         currentUser={currentUser}
+        workspace={workspace}
       />
 
       {/* Documents Section */}

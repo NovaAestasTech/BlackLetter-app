@@ -4,10 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ChatbotProvider } from "@/lib/chatbot-context";
 import { GlobalChatbotWrapper } from "@/components/dashboard/global-chatbot-wrapper";
-import "../styles/globals.css";
-
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+import "./globals.css";
+import NextAuthProvider from "@/components/Provider/next-auth-provider";
 
 export const metadata: Metadata = {
   title: "BlackLetter - Legal Agreement Dashboard",
@@ -41,10 +39,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <ChatbotProvider>
-          {children}
-          <GlobalChatbotWrapper />
-        </ChatbotProvider>
+        <NextAuthProvider>
+          <ChatbotProvider>
+            {children}
+            <GlobalChatbotWrapper />
+          </ChatbotProvider>
+        </NextAuthProvider>
+
         <Analytics />
       </body>
     </html>

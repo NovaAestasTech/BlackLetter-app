@@ -32,16 +32,6 @@ const ROLES = [
     label: "Editor",
     description: "Can edit documents and share with others",
   },
-  {
-    value: "commenter",
-    label: "Commenter",
-    description: "Can view and leave comments",
-  },
-  {
-    value: "viewer",
-    label: "Viewer",
-    description: "Read-only access to workspace",
-  },
 ];
 
 export function SharePermissionsDialog({
@@ -52,28 +42,26 @@ export function SharePermissionsDialog({
   onRemoveMember,
   onUpdateRole,
   currentUser,
+  workspace,
 }: SharePermissionsDialogProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("editor");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
-  const handleAddMember = () => {
-    setError("");
-
-    if (!email.trim()) {
-      setError("Please enter an email address");
-      return;
-    }
-
-    if (members.some((m) => m.email === email)) {
-      setError("This member is already invited");
-      return;
-    }
-
-    onAddMember({ email, role });
-    setEmail("");
-    setRole("editor");
+  const handleAddMember = async () => {
+    const response = await fetch("api/workspace/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        role: role,
+        workspace_id: workspace._id,
+        user: currentUser,
+      }),
+    });
+    const res = await response.json();
+    console.log(res);
   };
 
   const shareLink = `https://legalhub.app/join/${Math.random()

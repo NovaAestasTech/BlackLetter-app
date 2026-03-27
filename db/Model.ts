@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
+
 const WorkspaceSchema = new Schema({
   name: {
     type: String,
@@ -13,13 +14,19 @@ const WorkspaceSchema = new Schema({
     default: Date.now,
   },
   owner: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
   },
-  members: {
-    type: [String],
-    default: [],
-  },
+
+  members: [
+    {
+      email: { type: String },
+      role: { type: String, default: "editor" },
+
+      joinedAt: { type: Date, default: Date.now },
+    },
+  ],
+
   sharewith: {
     type: [String],
     default: [],
@@ -35,7 +42,26 @@ const WorkspaceSchema = new Schema({
     default: Date.now,
   },
 });
-
+const userSchema = new Schema(
+  {
+    Email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    Password: {
+      type: String,
+      required: true,
+    },
+    workspaces: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "WorkSpaces",
+      },
+    ],
+  },
+  { timestamps: true },
+);
 const documentSchema = new Schema({
   title: {
     type: String,
@@ -88,3 +114,5 @@ export default WorkSpaces;
 const Documents =
   mongoose.models.Documents || mongoose.model("Documents", documentSchema);
 export { Documents };
+const Users = mongoose.models.Users || mongoose.model("Users", userSchema);
+export { Users };
