@@ -61,7 +61,6 @@ export function SharePermissionsDialog({
       }),
     });
     const res = await response.json();
-    console.log(res);
   };
 
   const shareLink = `https://legalhub.app/join/${Math.random()
@@ -85,31 +84,6 @@ export function SharePermissionsDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Share Link Section */}
-          <div className="bg-muted/50 border border-border rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              Share Link
-            </h3>
-            <div className="flex gap-2">
-              <Input value={shareLink} readOnly className="bg-background" />
-              <Button
-                variant="outline"
-                onClick={copyShareLink}
-                className="gap-2 bg-transparent"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Anyone with this link can join the workspace
-            </p>
-          </div>
-
           {/* Invite Section */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-foreground">
@@ -147,15 +121,13 @@ export function SharePermissionsDialog({
             </h3>
             <div className="space-y-2">
               {members.map((member) => (
-                <Card key={member.id}>
+                <Card key={member._id}>
                   <CardContent className="pt-4 flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-foreground">
-                        {member.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
                         {member.email}
                       </p>
+
                       <p className="text-xs text-muted-foreground mt-1">
                         Joined {new Date(member.joinedAt).toLocaleDateString()}
                       </p>

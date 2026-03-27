@@ -37,6 +37,7 @@ export async function GET(req: Request) {
       );
     }
     const workspace = await WorkSpaces.findById(id).populate("documents");
+
     if (!workspace) {
       return NextResponse.json(
         { error: "Workspace not found" },

@@ -58,16 +58,7 @@ export function WorkspaceEditor({
   const { pdfName, pdfText } = useStore();
   const { setDocumentContent, setDocumentTitle } = useChatbot();
   const [isCreating, setIsCreating] = useState(false);
-  const [workspaceMembers, setWorkspaceMembers] = useState([
-    {
-      id: workspace._id,
-      email: currentUser.email,
-      name: currentUser.name,
-      role: "owner",
-      joinedAt: workspace.createdAt,
-      permissions: ["edit", "share", "delete", "manage_members"],
-    },
-  ]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<any>([]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,6 +72,7 @@ export function WorkspaceEditor({
 
         const data = await res.json();
         setDocuments(data.documents);
+        setWorkspaceMembers(data.members);
       } catch (error) {
         console.error("Error fetching documents:", error);
       }
