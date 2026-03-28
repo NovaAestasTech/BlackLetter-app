@@ -1,7 +1,37 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/db/db";
 import WorkSpaces, { Users } from "@/db/Model";
-import mongoose from "mongoose";
+
+export async function PATCH(req: Request) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(req.url);
+    const mId = searchParams.get("mId");
+    const wId = searchParams.get("wId");
+
+    const userId = searchParams.get("userId");
+    const findWorkspace = await WorkSpaces.findOneAndUpdate(
+      {
+        _id: wId,
+        owner: userId,
+      },
+      { $pull: { members: { _id: mId } }, return: true },
+    );
+    if (!findWorkspace) {
+      return NextResponse.json(
+        { message: "No workspace with this userId as owner found" },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ message: "Member Deleted" }, { status: 200 });
+  } catch (e) {
+    console.log(e);
+    if (e instanceof Error) {
+      throw new Error(e.message);
+    }
+    throw new Error("Unidentified Error");
+  }
+}
 export async function DELETE(req: Request) {
   try {
     await connectToDatabase();

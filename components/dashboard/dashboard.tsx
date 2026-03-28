@@ -61,13 +61,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     }
   };
   const handleCreateWorkspace = async (data: any) => {
-    console.log(user);
     const newWorkspace: WorkSpace = {
       name: data.name,
       description: data.description,
       createdAt: new Date().toISOString(),
       owner: user.id,
-      members: [],
+      members: [{ _id: user.id, email: user.email, role: "owner" }],
       documents: [],
       sharewith: [],
       lastModified: new Date().toISOString(),

@@ -77,7 +77,7 @@ export function AuthPage() {
           <FileText className="w-6 h-6" />
         </div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-          LegalHub
+          BlackLetter
         </h1>
       </div>
 

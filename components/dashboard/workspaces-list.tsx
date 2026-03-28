@@ -27,6 +27,7 @@ export function WorkspacesList({
 }: WorkspacesListProps) {
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [Workspaces, setWorkspaces] = useState(workspaces);
+
   if (selectedWorkspace) {
     return (
       <WorkspaceEditor
@@ -93,18 +94,21 @@ export function WorkspacesList({
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      className="gap-2 cursor-pointer text-red-600"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteWorkSpace(workspace._id);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                  {workspace.owner === currentUser.id && (
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer text-red-600"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await deleteWorkSpace(workspace._id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  )}
                 </DropdownMenu>
               </div>
 

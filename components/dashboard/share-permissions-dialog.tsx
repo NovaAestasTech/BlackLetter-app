@@ -27,11 +27,6 @@ const ROLES = [
     label: "Owner",
     description: "Full control, can manage members and delete workspace",
   },
-  {
-    value: "editor",
-    label: "Editor",
-    description: "Can edit documents and share with others",
-  },
 ];
 
 export function SharePermissionsDialog({
@@ -134,37 +129,38 @@ export function SharePermissionsDialog({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {member.role === "owner" ? (
-                        <Badge variant="outline">
-                          {member.role.charAt(0).toUpperCase() +
-                            member.role.slice(1)}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="capitalize">
+                          {member.role}
                         </Badge>
-                      ) : (
-                        <Select
-                          value={member.role}
-                          onValueChange={(newRole) =>
-                            onUpdateRole(member.id, newRole)
-                          }
-                          disabled={member.id === currentUser.id}
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ROLES.map((r) => (
-                              <SelectItem key={r.value} value={r.value}>
-                                {r.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
 
-                      {member.id !== currentUser.id && (
+                        {/* Show (You) if the member is the current user */}
+                        {member.email === currentUser.email && (
+                          <span className="text-xs text-muted-foreground italic">
+                            (You)
+                          </span>
+                        )}
+
+                        {/* Show a special style or icon if the member is the owner */}
+                        {member._id === workspace.owner && (
+                          <span className="text-xs text-amber-600 font-medium">
+                            ★ Workspace Creator
+                          </span>
+                        )}
+                      </div>
+
+                      {workspace.owner === currentUser.id && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onRemoveMember(member.id)}
+                          onClick={() =>
+                            onRemoveMember(
+                              member._id,
+                              workspace._id,
+
+                              currentUser.id,
+                            )
+                          }
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />

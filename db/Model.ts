@@ -20,7 +20,11 @@ const WorkspaceSchema = new Schema({
 
   members: [
     {
-      email: { type: String },
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+      email: { type: String, required: true },
       role: { type: String, default: "editor" },
 
       joinedAt: { type: Date, default: Date.now },

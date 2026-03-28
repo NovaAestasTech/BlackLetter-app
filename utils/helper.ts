@@ -5,7 +5,7 @@ export interface WorkSpace {
   description: string;
   createdAt: string;
   owner: string;
-  members: string[];
+  members: any[];
   sharewith: string[];
   documents: any[];
   lastModified: string;

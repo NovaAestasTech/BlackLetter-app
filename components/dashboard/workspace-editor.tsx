@@ -172,8 +172,23 @@ export function WorkspaceEditor({
     setWorkspaceMembers([...workspaceMembers, newMember]);
   };
 
-  const handleRemoveMember = (memberId: string) => {
-    setWorkspaceMembers(workspaceMembers.filter((m) => m.id !== memberId));
+  const handleRemoveMember = async (
+    memberId: string,
+    workspaceId: string,
+
+    userId: string,
+  ) => {
+    const res = await fetch(
+      `/api/workspace?mId=${memberId}&wId=${workspaceId}&userId=${userId}`,
+      {
+        method: "PATCH",
+      },
+    );
+    const data = await res.json();
+
+    setWorkspaceMembers(
+      workspaceMembers.filter((m: any) => m._id !== memberId),
+    );
   };
 
   const handleUpdateMemberRole = (memberId: string, newRole: string) => {
