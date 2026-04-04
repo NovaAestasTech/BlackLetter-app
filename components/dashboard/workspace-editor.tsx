@@ -1,38 +1,13 @@
 "use client";
+// IMPORTENT
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  ArrowLeft,
-  Plus,
-  Share2,
-  Clock,
-  Users,
-  Users2,
-  FileText,
-  MoreVertical,
-  Copy,
-  ExternalLink,
-  Upload,
-} from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Search, Plus, MoreHorizontal } from "lucide-react";
 
 import { SharePermissionsDialog } from "./share-permissions-dialog";
 import { DocumentShareDialog } from "./document-share-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { FileUploadDialog } from "./file-upload-dialog";
+import { LeftSidebar } from "./left-sidebar";
 import { useStore } from "@/store/useStore";
 import { useChatbot } from "@/lib/chatbot-context";
 import { TemplatesDialog } from "./Template-dialog";
@@ -41,10 +16,58 @@ import { Template } from "@/app/templates/templates";
 import { ParsedDocument } from "@/utils/helper";
 import { WorkspaceEditorProps } from "@/utils/helper";
 
+const F = "'Manrope', sans-serif";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatRelativeTime(isoDate: string) {
+  if (!isoDate) return "—";
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(hours / 24);
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  return new Date(isoDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getInitials(email: string) {
+  const name = email?.split("@")[0] ?? "";
+  const parts = name.split(/[._-]/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function formatActivity(isoDate: string) {
+  if (!isoDate) return "—";
+  const d = new Date(isoDate);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function getRolePermissions(role: string) {
+  const rolePermissions: Record<string, string[]> = {
+    owner: ["edit", "share", "delete", "manage_members"],
+    editor: ["edit", "share"],
+    viewer: ["view"],
+    commenter: ["view", "comment"],
+  };
+  return rolePermissions[role] || [];
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export function WorkspaceEditor({
   workspace,
   currentUser,
   onBack,
+  onTabChange,
+  onCreateWorkspace,
+  onLogout,
+  initialTemplateToLoad,
+  initialFileToUpload,
 }: WorkspaceEditorProps) {
   const [documents, setDocuments] = useState<any[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<ParsedDocument | null>(null);
@@ -55,21 +78,18 @@ export function WorkspaceEditor({
   const [selectedDocToShare, setSelectedDocToShare] = useState<any>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [openTemplate, setopenTemplate] = useState(false);
-  const { pdfName, pdfText } = useStore();
-  const { setDocumentContent, setDocumentTitle } = useChatbot();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [workspaceMembers, setWorkspaceMembers] = useState<any>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
+  const { pdfName, pdfText, fetchPdfData } = useStore();
+  const { setDocumentContent, setDocumentTitle } = useChatbot();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/documents?id=${workspace._id}`, {
-          method: "GET",
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch documents");
-        }
-
+        const res = await fetch(`/api/documents?id=${workspace._id}`, { method: "GET" });
+        if (!res.ok) throw new Error("Failed to fetch documents");
         const data = await res.json();
         setDocuments(data.documents);
         setWorkspaceMembers(data.members);
@@ -77,35 +97,38 @@ export function WorkspaceEditor({
         console.error("Error fetching documents:", error);
       }
     };
-
     fetchData();
   }, [workspace._id]);
 
+  const hasInitializedExternalDocs = useRef(false);
+  useEffect(() => {
+    if (hasInitializedExternalDocs.current) return;
+    hasInitializedExternalDocs.current = true;
+
+    if (initialFileToUpload) {
+      handleFileUpload(initialFileToUpload, initialFileToUpload.name);
+    } else if (initialTemplateToLoad) {
+      fetchPdfData(initialTemplateToLoad.name).then(() => {
+        setIsCreating(true);
+      });
+    }
+  }, [initialFileToUpload, initialTemplateToLoad]);
+
   const addDocument = async (doc: any, id: string) => {
     try {
-      const res = await fetch("/api/documents", {
+      await fetch("/api/documents", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id,
-          doc,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, doc }),
       });
-      const data = await res.json();
-      return;
     } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message);
-      }
+      if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
   };
 
   const handleCreateDocument = async () => {
     if (!newDocTitle.trim()) return;
-
     const doc = {
       title: newDocTitle,
       content: "",
@@ -127,20 +150,14 @@ export function WorkspaceEditor({
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      const response = await fetch(
-        "https://python-parser-mkqr.onrender.com/parse_pdf",
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const response = await fetch("https://python-parser-mkqr.onrender.com/parse_pdf", {
+        method: "POST",
+        body: formData,
+      });
       const data = await response.json();
-      const content = data["html"];
-
       const doc = {
-        title: title,
-        content: content,
+        title,
+        content: data["html"],
         createdAt: new Date().toISOString(),
         lastModified: new Date().toISOString(),
         createdBy: currentUser.id,
@@ -168,40 +185,21 @@ export function WorkspaceEditor({
       permissions: getRolePermissions(data.role),
     };
     workspace.sharewith.push(newMember);
-
     setWorkspaceMembers([...workspaceMembers, newMember]);
   };
 
-  const handleRemoveMember = async (
-    memberId: string,
-    workspaceId: string,
-
-    userId: string,
-  ) => {
-    const res = await fetch(
-      `/api/workspace?mId=${memberId}&wId=${workspaceId}&userId=${userId}`,
-      {
-        method: "PATCH",
-      },
-    );
-    const data = await res.json();
-
-    setWorkspaceMembers(
-      workspaceMembers.filter((m: any) => m._id !== memberId),
-    );
+  const handleRemoveMember = async (memberId: string) => {
+    await fetch(`/api/workspace?mId=${memberId}&wId=${workspace._id}&userId=${currentUser.id}`, {
+      method: "PATCH",
+    });
+    setWorkspaceMembers(workspaceMembers.filter((m: any) => m._id !== memberId));
   };
 
   const handleUpdateMemberRole = (memberId: string, newRole: string) => {
     setWorkspaceMembers(
       workspaceMembers.map((m) =>
-        m.id === memberId
-          ? {
-              ...m,
-              role: newRole,
-              permissions: getRolePermissions(newRole),
-            }
-          : m,
-      ),
+        m.id === memberId ? { ...m, role: newRole, permissions: getRolePermissions(newRole) } : m
+      )
     );
   };
 
@@ -210,58 +208,44 @@ export function WorkspaceEditor({
     setSelectedDocToShare(doc);
     setShowDocumentShare(true);
   };
+
   const callTemplates = async () => {
-    try {
-      setopenTemplate(true);
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message);
-      }
+    try { setopenTemplate(true); } catch (e) {
+      if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
   };
+
   useEffect(() => {
     if (isCreating && pdfText) {
       const saveNewTemplateDoc = async () => {
         const formData = new FormData();
         formData.append("text", pdfText);
-
-        const response = await fetch(
-          "https://python-parser-mkqr.onrender.com/parse_text",
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
-
+        const response = await fetch("https://python-parser-mkqr.onrender.com/parse_text", {
+          method: "POST",
+          body: formData,
+        });
         const data = await response.json();
-        const content = data["html"];
         const doc = {
           title: pdfName || "New Template Document",
-          content: content,
+          content: data["html"],
           createdAt: new Date().toISOString(),
           lastModified: new Date().toISOString(),
           createdBy: currentUser.id,
           fileType: "pdf",
           sharedWith: [],
         };
-
         setDocuments((prev) => [doc, ...prev]);
         await addDocument(doc, workspace._id);
-
         setIsCreating(false);
       };
-
       saveNewTemplateDoc();
     }
   }, [pdfText, pdfName, isCreating]);
+
   const createTemplate = async (template: Template) => {
-    try {
-      setIsCreating(true);
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message);
-      }
+    try { setIsCreating(true); } catch (e) {
+      if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
   };
@@ -269,7 +253,7 @@ export function WorkspaceEditor({
   const handleDocumentShareConfirm = (sharedWith: any[]) => {
     if (selectedDocToShare) {
       const updatedDocs = documents.map((doc) =>
-        doc.id === selectedDocToShare.id ? { ...doc, sharedWith } : doc,
+        doc.id === selectedDocToShare.id ? { ...doc, sharedWith } : doc
       );
       setDocuments(updatedDocs);
     }
@@ -280,15 +264,11 @@ export function WorkspaceEditor({
   if (selectedDoc) {
     (async () => {
       try {
-        const res = await fetch(
-          "https://editor.blackletter.co.in/api/ai/test-api",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: selectedDoc.content }),
-          },
-        );
-
+        const res = await fetch("https://editor.blackletter.co.in/api/ai/test-api", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: selectedDoc.content }),
+        });
         if (res.ok) {
           setSelectedDoc(null);
           window.location.href = "https://editor.blackletter.co.in/";
@@ -299,86 +279,391 @@ export function WorkspaceEditor({
     })();
   }
 
+  // Filtered members for sidebar search
+  const filteredMembers = workspaceMembers.filter((m: any) =>
+    !memberSearch || (m.email + (m.name ?? "")).toLowerCase().includes(memberSearch.toLowerCase())
+  );
+
+  // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onBack}
-        className="gap-2 text-slate-600 hover:text-slate-900"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Workspaces
-      </Button>
+    <div
+      className="h-screen w-full overflow-hidden flex bg-stone-50"
+      style={{ fontFamily: F }}
+    >
+      {/* ─── Left Sidebar ─────────────────────────────────── */}
+      <LeftSidebar
+        activeTab="dashboard"
+        onTabChange={(tab) => { 
+          if (tab === "dashboard") onBack(); 
+          else onTabChange(tab); 
+        }}
+        onCreateWorkspace={onCreateWorkspace}
+        onLogout={onLogout}
+        userEmail={currentUser.email}
+      />
 
-      {/* Workspace Header Card */}
-      <Card className="border-slate-200 bg-gradient-to-br from-white to-blue-50">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-3xl text-slate-900">
-                {workspace.name}
-              </CardTitle>
-              <CardDescription className="text-slate-600 mt-2">
-                {workspace.description}
-              </CardDescription>
-            </div>
-            <Button
-              onClick={() => setShowShareDialog(true)}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Share2 className="w-4 h-4" />
-              Manage Access
-            </Button>
+      {/* ─── Main Content ─────────────────────────────────── */}
+      <main className="flex-1 min-w-0 h-screen flex flex-col overflow-hidden">
+        {/* Search bar */}
+        <div className="px-6 pt-5 pb-0 shrink-0">
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-stone-100 rounded-2xl border border-zinc-300">
+            <Search className="w-4 h-4 text-stone-600 shrink-0" />
+            <span className="text-stone-600/50 text-sm font-normal">
+              Search Document...
+            </span>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
+        {/* Page title */}
+        <div className="px-6 pt-3 pb-1 shrink-0">
+          <h1
+            className="text-zinc-800 font-bold leading-10"
+            style={{ fontSize: "36px", fontFamily: F }}
+          >
+            Workspace Detail
+          </h1>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto min-h-0 px-6 pb-6 flex flex-col gap-4">
+
+          {/* ── Info Card ──────────────────────────────────── */}
+          <div className="bg-stone-100 rounded-lg p-5">
+            <div className="flex items-start gap-10">
+              {/* Name */}
+              <div className="flex flex-col gap-1 min-w-[120px]">
+                <span className="text-stone-600/50 text-[10px] font-bold uppercase leading-4 tracking-wide">
+                  Name
+                </span>
+                <span
+                  className="text-zinc-800 text-2xl font-light leading-8"
+                  style={{ fontFamily: F }}
+                >
+                  {workspace.name}
+                </span>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Members</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {workspaceMembers.length}
-                </p>
+              {/* Members */}
+              <div className="flex flex-col gap-3">
+                <span className="text-stone-600/50 text-[10px] font-bold uppercase leading-4 tracking-wide">
+                  Members
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {workspaceMembers.slice(0, 4).map((m: any, i: number) => (
+                    <div
+                      key={m._id || i}
+                      className="w-8 h-8 bg-neutral-200 rounded-md flex items-center justify-center"
+                      title={m.email}
+                    >
+                      <span className="text-stone-600 text-[10px] font-bold leading-4">
+                        {getInitials(m.email)}
+                      </span>
+                    </div>
+                  ))}
+                  {workspaceMembers.length > 4 && (
+                    <div className="w-8 h-8 rounded-md border border-neutral-400 flex items-center justify-center">
+                      <Plus className="w-3 h-3 text-zinc-800" />
+                    </div>
+                  )}
+                  {workspaceMembers.length === 0 && (
+                    <div className="w-8 h-8 rounded-md border border-neutral-400 flex items-center justify-center">
+                      <Plus className="w-3 h-3 text-zinc-800" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Documents</p>
-                <p className="text-lg font-bold text-slate-900">
+              {/* Files */}
+              <div className="flex flex-col gap-1">
+                <span className="text-stone-600/50 text-[10px] font-bold uppercase leading-4 tracking-wide">
+                  Files
+                </span>
+                <span
+                  className="text-zinc-800 text-xl font-medium leading-7"
+                  style={{ fontFamily: F }}
+                >
                   {documents.length}
-                </p>
+                </span>
               </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white">
-              <div className="bg-emerald-100 p-2 rounded-lg">
-                <Clock className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Created</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {new Date(workspace.createdAt).toLocaleDateString()}
-                </p>
+              {/* Activity */}
+              <div className="flex flex-col gap-1">
+                <span className="text-stone-600/50 text-[10px] font-bold uppercase leading-4 tracking-wide">
+                  Activity
+                </span>
+                <span
+                  className="text-zinc-800 text-xl font-medium leading-7"
+                  style={{ fontFamily: F }}
+                >
+                  {formatActivity(workspace.lastModified)}
+                </span>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* ── Documents Section ──────────────────────────── */}
+          <div>
+            {/* Section header */}
+            <div className="flex items-center justify-between mb-3">
+              <h2
+                className="text-zinc-800 text-xl font-bold leading-7"
+                style={{ fontFamily: F }}
+              >
+                Documents
+              </h2>
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={() => setShowNewDoc(!showNewDoc)}
+                  className="text-stone-600 text-sm font-medium hover:text-zinc-800 transition-colors"
+                  style={{ fontFamily: F }}
+                >
+                  New Document
+                </button>
+                <button
+                  onClick={() => callTemplates()}
+                  className="text-stone-600 text-sm font-medium hover:text-zinc-800 transition-colors"
+                  style={{ fontFamily: F }}
+                >
+                  Use Template
+                </button>
+              </div>
+            </div>
+
+            {/* New doc inline form */}
+            {showNewDoc && (
+              <div className="mb-3 flex gap-2 items-center px-4 py-3 bg-white rounded-lg border border-zinc-200">
+                <input
+                  className="flex-1 bg-transparent outline-none text-sm text-zinc-800 placeholder:text-stone-400"
+                  placeholder="Document title..."
+                  value={newDocTitle}
+                  onChange={(e) => setNewDocTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreateDocument()}
+                  style={{ fontFamily: F }}
+                  autoFocus
+                />
+                <button
+                  onClick={handleCreateDocument}
+                  className="px-3 py-1.5 bg-stone-600 text-orange-50 text-xs font-bold rounded-md uppercase tracking-wide"
+                >
+                  Create
+                </button>
+                <button
+                  onClick={() => setShowNewDoc(false)}
+                  className="px-3 py-1.5 text-stone-600 text-xs font-medium hover:text-zinc-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Table */}
+            <div className="bg-white rounded-lg overflow-hidden">
+              {/* Table header */}
+              <div className="flex border-b border-neutral-400/20">
+                <div className="w-96 px-6 py-4">
+                  <span className="text-stone-600/50 text-[10px] font-bold uppercase tracking-wide">
+                    Name
+                  </span>
+                </div>
+                <div className="w-56 px-6 py-4">
+                  <span className="text-stone-600/50 text-[10px] font-bold uppercase tracking-wide">
+                    Type
+                  </span>
+                </div>
+                <div className="flex-1 px-6 py-4">
+                  <span className="text-stone-600/50 text-[10px] font-bold uppercase tracking-wide">
+                    Last Edited
+                  </span>
+                </div>
+              </div>
+
+              {/* Document rows */}
+              {documents.length === 0 ? (
+                <div className="px-6 py-12 text-center text-stone-600/50 text-sm">
+                  No documents yet. Create one above.
+                </div>
+              ) : (
+                documents.map((doc, idx) => (
+                  <div
+                    key={doc._id || idx}
+                    className={`flex items-center cursor-pointer hover:bg-stone-50 transition-colors group ${
+                      idx > 0 ? "border-t border-neutral-400/20" : ""
+                    }`}
+                    onClick={() => {
+                      setDocumentContent(doc.content);
+                      setDocumentTitle(doc.title);
+                      setSelectedDoc(doc);
+                    }}
+                  >
+                    <div className="w-96 px-6 py-5">
+                      <span
+                        className="text-zinc-800 text-sm font-medium leading-5"
+                        style={{ fontFamily: F }}
+                      >
+                        {doc.title}
+                      </span>
+                    </div>
+                    <div className="w-56 px-6 py-5">
+                      <span
+                        className="text-stone-600 text-sm font-normal leading-5"
+                        style={{ fontFamily: F }}
+                      >
+                        {doc.fileType === "pdf"
+                          ? "PDF"
+                          : doc.fileType === "docx"
+                          ? "DOCX"
+                          : doc.fileType || workspace.name}
+                      </span>
+                    </div>
+                    <div className="flex-1 px-6 py-5 flex items-center justify-between">
+                      <span
+                        className="text-stone-600 text-sm font-normal leading-5"
+                        style={{ fontFamily: F }}
+                      >
+                        {formatRelativeTime(doc.lastModified)}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleShareDocument(doc.id); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity mr-4"
+                      >
+                        <MoreHorizontal className="w-4 h-4 text-stone-600" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* ─── Right Sidebar ────────────────────────────────── */}
+      <aside className="w-72 h-screen flex flex-col gap-3 pt-5 pb-2 pr-2 pl-2 shrink-0 overflow-hidden">
+
+        {/* Manage Access */}
+        <div className="bg-[#DEE6C4] rounded-lg p-5 flex flex-col gap-4 flex-1 overflow-hidden">
+          <h3
+            className="text-zinc-800 text-xl font-bold leading-7"
+            style={{ fontFamily: F }}
+          >
+            Manage Access
+          </h3>
+
+          {/* Invite Member */}
+          <div className="flex flex-col gap-3">
+            <span className="text-stone-600 text-[10px] font-bold uppercase leading-4 tracking-wide">
+              Invite Member
+            </span>
+            <input
+              className="w-full px-4 py-3 bg-white rounded-md text-gray-500 text-sm font-normal outline-none"
+              placeholder="Email address"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              style={{ fontFamily: F }}
+            />
+            <button
+              onClick={() => {
+                if (inviteEmail.trim()) {
+                  setShowShareDialog(true);
+                }
+              }}
+              className="w-full py-3 bg-stone-600 hover:bg-stone-700 rounded-md text-orange-50 text-xs font-bold uppercase tracking-wider transition-colors"
+              style={{ fontFamily: F }}
+            >
+              Send Invitation
+            </button>
+          </div>
+
+          {/* Current Members */}
+          <div className="flex flex-col gap-3 mt-1">
+            <span className="text-stone-600 text-[10px] font-bold uppercase leading-4 tracking-wide">
+              Current Members
+            </span>
+            {/* Member search */}
+            <div className="relative border-b border-neutral-400/20 pb-2">
+              <Search className="absolute left-0 top-0.5 w-2.5 h-2.5 text-stone-600/40" />
+              <input
+                className="w-full pl-5 bg-transparent text-gray-500 text-xs font-normal outline-none"
+                placeholder="Search members..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                style={{ fontFamily: F }}
+              />
+            </div>
+            {/* Member cards */}
+            <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
+              {filteredMembers.map((m: any, i: number) => (
+                <div
+                  key={m._id || i}
+                  className="p-3 bg-white rounded flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-neutral-200 rounded-md flex items-center justify-center shrink-0">
+                      <span className="text-stone-600 text-xs font-bold leading-4">
+                        {getInitials(m.email)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span
+                        className="text-zinc-800 text-sm font-semibold leading-5"
+                        style={{ fontFamily: F }}
+                      >
+                        {m.name || m.email?.split("@")[0]}
+                      </span>
+                      <span
+                        className="text-stone-600/60 text-xs font-normal leading-4"
+                        style={{ fontFamily: F }}
+                      >
+                        {m.email}
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    className="text-stone-600 text-xs font-bold leading-6 capitalize"
+                    style={{ fontFamily: F }}
+                  >
+                    {m.role || "Editor"}
+                  </span>
+                </div>
+              ))}
+              {filteredMembers.length === 0 && (
+                <p className="text-stone-600/50 text-xs text-center py-2">No members found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Docs */}
+        <div className="bg-[#DEE6C4] rounded-lg p-4 flex flex-col gap-3">
+          <span
+            className="text-stone-600 text-sm font-semibold uppercase leading-5 tracking-wide"
+            style={{ fontFamily: F }}
+          >
+            Upload Docs
+          </span>
+          <button
+            onClick={() => setShowFileUpload(true)}
+            className="w-full rounded-lg border-2 border-dashed border-neutral-400/30 py-8 flex flex-col items-center gap-2 hover:bg-white/30 transition-colors"
+          >
+            <span
+              className="text-stone-600 text-sm font-medium leading-5"
+              style={{ fontFamily: F }}
+            >
+              Drag files here or click to browse
+            </span>
+            <span
+              className="text-neutral-400 text-[10px] font-normal leading-4"
+              style={{ fontFamily: F }}
+            >
+              Support PDF, DOCX, TXT up to 25MB
+            </span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ─── Dialogs ──────────────────────────────────────── */}
       <TemplatesDialog
         open={openTemplate}
         onOpenChange={setopenTemplate}
         onSelectTemplate={createTemplate}
       />
-
-      {/* Share Dialog */}
       <SharePermissionsDialog
         open={showShareDialog}
         onOpenChange={setShowShareDialog}
@@ -389,201 +674,11 @@ export function WorkspaceEditor({
         currentUser={currentUser}
         workspace={workspace}
       />
-
-      {/* Documents Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">Documents</h2>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setShowFileUpload(true)}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-            >
-              <Upload className="w-4 h-4" />
-              Upload File
-            </Button>
-            <Button
-              onClick={() => setShowNewDoc(!showNewDoc)}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              New Document
-            </Button>
-            <Button
-              onClick={() => callTemplates()}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              Use Template
-            </Button>
-          </div>
-        </div>
-
-        {showNewDoc && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-6 space-y-4">
-              <Input
-                placeholder="Document title (e.g., Service Agreement Draft)"
-                value={newDocTitle}
-                onChange={(e) => setNewDocTitle(e.target.value)}
-                className="bg-white border-blue-300 focus:border-blue-500"
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleCreateDocument}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Create
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowNewDoc(false)}
-                  className="border-slate-300"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {documents.length === 0 ? (
-          <Card className="border-dashed border-2 border-slate-300 bg-slate-50">
-            <CardContent className="pt-12 pb-12 text-center space-y-4">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-              <div>
-                <p className="text-slate-900 font-semibold">No documents yet</p>
-                <p className="text-slate-600 text-sm mt-1">
-                  Create a new document or upload a file to start collaborating
-                </p>
-              </div>
-              <div className="flex gap-2 justify-center">
-                <Button
-                  onClick={() => setShowNewDoc(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Create Document
-                </Button>
-                <Button
-                  onClick={() => setShowFileUpload(true)}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload File
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {documents.map((doc) => {
-              const activeCount = doc.activeUsers?.length || 0;
-              const isUploadedFile = doc.fileType && doc.fileType !== "text";
-              return (
-                <Card
-                  key={doc._id}
-                  className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-slate-200 bg-white"
-                >
-                  <div
-                    className={`h-16 flex items-center justify-between px-6 bg-gradient-to-br ${
-                      isUploadedFile
-                        ? "from-emerald-500 to-emerald-600"
-                        : "from-blue-500 to-blue-600"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-white" />
-                      {isUploadedFile && (
-                        <span className="text-xs font-semibold text-white bg-white/20 px-2 py-1 rounded-full uppercase">
-                          {doc.fileType}
-                        </span>
-                      )}
-                    </div>
-                    {activeCount > 0 && (
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
-                        <Users2 className="w-3 h-3" />
-                        {activeCount} editing
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="pt-5 pb-5 space-y-4">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-slate-900 text-lg leading-tight">
-                        {doc.title}
-                      </h3>
-                      <p className="text-xs text-slate-500">
-                        Created {new Date(doc.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <p className="text-sm text-slate-600 line-clamp-2">
-                      {doc.content || "No content yet"}
-                    </p>
-
-                    {doc.sharedWith && doc.sharedWith.length > 0 && (
-                      <div className="flex items-center gap-2 pt-2 pb-2 border-t border-slate-200">
-                        <Users2 className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-medium text-slate-700">
-                          Shared with {doc.sharedWith.length}{" "}
-                          {doc.sharedWith.length === 1 ? "person" : "people"}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md transition-all group-hover:shadow-lg"
-                        size="sm"
-                        onClick={() => {
-                          setDocumentContent(doc.content);
-                          setDocumentTitle(doc.title);
-                          setSelectedDoc(doc);
-                        }}
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleShareDocument(doc.id)}
-                        className="gap-2 border-slate-300 hover:bg-blue-50"
-                      >
-                        <Share2 className="w-4 h-4" />
-                        Share
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-slate-300 bg-transparent"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-slate-700">
-                            <Copy className="w-4 h-4" />
-                            <span>Duplicate</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       <FileUploadDialog
         open={showFileUpload}
         onOpenChange={setShowFileUpload}
         onFileUpload={handleFileUpload}
       />
-
-      {/* Document Share Dialog */}
       {selectedDocToShare && (
         <DocumentShareDialog
           open={showDocumentShare}
@@ -596,14 +691,4 @@ export function WorkspaceEditor({
       )}
     </div>
   );
-}
-
-function getRolePermissions(role: string) {
-  const rolePermissions: Record<string, string[]> = {
-    owner: ["edit", "share", "delete", "manage_members"],
-    editor: ["edit", "share"],
-    viewer: ["view"],
-    commenter: ["view", "comment"],
-  };
-  return rolePermissions[role] || [];
 }

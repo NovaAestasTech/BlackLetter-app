@@ -1,4 +1,5 @@
 "use client";
+// IMPORTENT
 
 import { AuthPage } from "@/components/auth/auth-page";
 import { Dashboard } from "@/components/dashboard/dashboard";

@@ -1,4 +1,5 @@
 "use client";
+// IMPORTENT
 
 import { useState } from "react";
 import {
@@ -41,41 +42,45 @@ export function TemplatesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-96 overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Choose a Template</DialogTitle>
-          <DialogDescription>
+      <DialogContent 
+        className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden bg-white border-0 shadow-2xl rounded-2xl p-0 gap-0"
+        style={{ fontFamily: "'Manrope', sans-serif" }}
+      >
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
+          <DialogTitle className="text-zinc-800 font-extrabold text-xl tracking-tight">Choose a Template</DialogTitle>
+          <DialogDescription className="text-stone-500 font-medium tracking-wide">
             Select a template to start your document with pre-filled content and
             structure
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-3 py-4">
-          {TEMPLATES.map((template) => (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="grid grid-cols-1 gap-3 p-6 pt-2">
+            {TEMPLATES.map((template) => (
             <Card
               key={template.id}
-              className={`cursor-pointer transition-all ${
+              className={`cursor-pointer transition-all border rounded-xl overflow-hidden ${
                 selectedTemplate?.id === template.id
-                  ? "border-blue-500 border-2 bg-blue-50"
-                  : "border-slate-200 hover:border-blue-300 hover:shadow-md"
+                  ? "border-zinc-800 border-2 bg-stone-50 shadow-sm"
+                  : "border-stone-200 hover:border-zinc-400 hover:shadow-md bg-white opacity-80 hover:opacity-100"
               }`}
               onClick={() => handleSelectTemplate(template)}
             >
               <CardContent className="pt-4">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-lg flex-shrink-0">
-                    <FileText className="w-6 h-6 text-blue-600" />
+                  <div className="bg-stone-200 p-3 rounded-xl flex-shrink-0">
+                    <FileText className="w-6 h-6 text-stone-600" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">
+                  <div className="flex-1 mt-0.5">
+                    <h3 className="font-bold text-zinc-800">
                       {template.name}
                     </h3>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="text-sm text-stone-500 mt-1 font-medium">
                       {template.description}
                     </p>
                   </div>
                   {selectedTemplate?.id === template.id && (
-                    <div className="flex-shrink-0 bg-blue-500 rounded-full p-1">
+                    <div className="flex-shrink-0 bg-zinc-800 rounded-full p-1 mt-1 shadow-md">
                       <svg
                         className="w-5 h-5 text-white"
                         fill="currentColor"
@@ -93,20 +98,21 @@ export function TemplatesDialog({
               </CardContent>
             </Card>
           ))}
+          </div>
         </div>
 
-        <div className="flex gap-2 justify-end pt-4 border-t border-slate-200">
+        <div className="flex gap-3 justify-end p-6 pt-5 border-t border-stone-200 shrink-0 bg-white">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-slate-300"
+            className="border-stone-300 text-stone-600 hover:bg-stone-100 font-semibold rounded-xl"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!selectedTemplate}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
           >
             Use Template
           </Button>

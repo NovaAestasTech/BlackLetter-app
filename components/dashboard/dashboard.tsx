@@ -1,65 +1,61 @@
 "use client";
+// IMPORTENT
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search } from "lucide-react";
 
 import { WorkspacesList } from "./workspaces-list";
+import { WorkspaceEditor } from "./workspace-editor";
+import { AllWorkspacesView } from "./all-workspaces-view";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
-import { FileText, LogOut, Plus } from "lucide-react";
+import { CreateWorkspaceView } from "./create-workspace-view";
+import { LeftSidebar } from "./left-sidebar";
+import { RightSidebar } from "./right-sidebar";
+import { type Template } from "@/app/templates/templates";
 
-import { WorkSpace } from "@/utils/helper";
-import { DashboardProps } from "@/utils/helper";
+import { WorkSpace, DashboardProps } from "@/utils/helper";
+
+type View = "dashboard" | "all-workspaces" | "create-workspace";
+
 export function Dashboard({ user, onLogout }: DashboardProps) {
   const [workspaces, setWorkspaces] = useState<WorkSpace[]>([]);
-  const [personalWorkSpace, setPersonalWorksSpace] = useState<WorkSpace[]>([]);
-  const [sharedWorkSpace, setsharedWorksSpace] = useState<WorkSpace[]>([]);
+  const [view, setView] = useState<View>("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    const workspaces = async () => {
+    const fetchWorkspaces = async () => {
       try {
         const data = await fetch(
           `/api/workspace?userId=${user.id}&userMail=${encodeURIComponent(user.email)}`,
-          {
-            method: "GET",
-          },
+          { method: "GET" }
         );
         const res = await data.json();
-
         setWorkspaces(res);
-        const shared = res.filter((ws: WorkSpace) => ws.sharewith.length > 0);
-        setsharedWorksSpace(shared);
-        const pershared = res.filter(
-          (ws: WorkSpace) => ws.sharewith?.length == 0,
-        );
-        setPersonalWorksSpace(pershared);
       } catch (e) {
-        if (e instanceof Error) {
-          throw new Error(e.message);
-        }
+        if (e instanceof Error) throw new Error(e.message);
         throw new Error("Unknown error occurred");
       }
     };
-    workspaces();
+    fetchWorkspaces();
   }, []);
-
-  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
 
   const addNewWorkSpace = async (workspace: WorkSpace) => {
     try {
       const res = await fetch("/api/workspace", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaces: workspace, user: user }),
       });
-      const data = await res.json();
-      return data;
-    } catch (e) {
+      return await res.json();
+    } catch {
       throw new Error("Workspace can't be created");
     }
   };
+
   const handleCreateWorkspace = async (data: any) => {
     const newWorkspace: WorkSpace = {
       name: data.name,
@@ -71,118 +67,185 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       sharewith: [],
       lastModified: new Date().toISOString(),
     };
-    setPersonalWorksSpace([newWorkspace, ...personalWorkSpace]);
-    await addNewWorkSpace(newWorkspace);
-    setShowCreateWorkspace(false);
+    
+    // Create via API first to get MongoDB _id
+    const responseData = await addNewWorkSpace(newWorkspace);
+    const createdWorkspace = responseData?.workspace || responseData;
+
+    setWorkspaces((prev) => [createdWorkspace, ...prev]);
+    setSelectedWorkspace(createdWorkspace);
+    setView("dashboard");
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-md border border-white/50">
-                <img src="/Matte1.png" className="w-8 h-8 object-contain" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  BlackLetter
-                </h1>
-                <p className="text-sm text-slate-500">
-                  Professional Agreement Dashboard
-                </p>
-              </div>
-            </div>
+  const filtered = workspaces.filter((ws) =>
+    ws.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-xs text-slate-500">
-                  {user.email.split("@")[0].toUpperCase()}
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onLogout}
-                className="gap-2 text-slate-600 hover:text-slate-900"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+  const recent = [...filtered]
+    .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())
+    .slice(0, 5);
+
+  // Sidebar tab → view mapping
+  const handleTabChange = (tab: "dashboard" | "all" | "create") => {
+    if (tab === "all") { setSelectedTemplate(null); setSelectedFile(null); setView("all-workspaces"); return; }
+    if (tab === "create") { setView("create-workspace"); return; }
+    if (tab === "dashboard") { setSelectedTemplate(null); setSelectedFile(null); setView("dashboard"); return; }
+  };
+
+  // Which sidebar tab is "active"?
+  const activeTab: "dashboard" | "all" | "create" =
+    view === "all-workspaces" ? "all" : view === "create-workspace" ? "create" : "dashboard";
+
+  return (
+    <div
+      className="h-screen overflow-hidden flex bg-stone-50"
+      style={{ fontFamily: "'Manrope', sans-serif" }}
+    >
+      {/* Full-screen workspace editor — replaces everything */}
+      {selectedWorkspace ? (
+        <WorkspaceEditor
+          workspace={selectedWorkspace}
+          currentUser={user}
+          initialTemplateToLoad={selectedTemplate}
+          initialFileToUpload={selectedFile}
+          onBack={() => {
+            setSelectedWorkspace(null);
+            setSelectedTemplate(null);
+            setSelectedFile(null);
+          }}
+          onTabChange={(tab) => {
+            setSelectedWorkspace(null);
+            handleTabChange(tab);
+          }}
+          onCreateWorkspace={() => {
+            setSelectedWorkspace(null);
+            setView("create-workspace");
+          }}
+          onLogout={onLogout}
+        />
+      ) : (
+        <>
+      {/* Left Sidebar — always visible */}
+      <LeftSidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onCreateWorkspace={() => setView("create-workspace")}
+        onLogout={onLogout}
+        userEmail={user.email}
+      />
+
+        {/* Main content — switches between views */}
+        {view === "create-workspace" ? (
+          <CreateWorkspaceView
+            onCreate={handleCreateWorkspace}
+          />
+        ) : view === "all-workspaces" ? (
+          <AllWorkspacesView
+            workspaces={workspaces}
+            currentUser={user}
+            onCreateWorkspace={() => setView("create-workspace")}
+            onOpenWorkspace={(ws) => setSelectedWorkspace(ws)}
+          />
+        ) : (
+        /* ── Dashboard overview ────────────────────────────── */
+        <main className="flex-1 h-screen flex flex-col overflow-hidden">
+          {/* Search Bar */}
+          <div className="px-6 pt-5 pb-0 shrink-0">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-stone-100 rounded-2xl border border-zinc-300">
+              <Search className="w-4 h-4 text-stone-600 shrink-0" />
+              <input
+                className="flex-1 bg-transparent outline-none text-sm text-zinc-800 placeholder:text-stone-500/70 font-normal"
+                placeholder="Search workspaces..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ fontFamily: "'Manrope', sans-serif" }}
+              />
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Tabs defaultValue="workspaces" className="w-full">
-          <TabsContent value="workspaces" className="space-y-8 mt-6">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900">
-                    Your Workspaces
-                  </h2>
-                  <p className="text-slate-600 mt-2">
-                    Collaborate with your team on legal agreements
-                  </p>
-                </div>
-                <Button
-                  onClick={() => setShowCreateWorkspace(true)}
-                  className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-md"
+          {/* Page Title */}
+          <div className="px-6 pt-4 pb-1 shrink-0">
+            <h1
+              className="text-zinc-800 font-extrabold"
+              style={{ fontSize: "36px", lineHeight: "44px", fontFamily: "'Manrope', sans-serif" }}
+            >
+              Dashboard
+            </h1>
+          </div>
+
+          {/* Two scrollable workspace boxes */}
+          <div className="flex-1 flex flex-col gap-4 px-6 pb-5 overflow-hidden min-h-0">
+
+            {/* Recent Workspaces */}
+            <div className="flex-1 flex flex-col bg-white rounded-2xl border border-zinc-300 overflow-hidden min-h-0">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
+                <h2
+                  className="text-zinc-800 font-semibold"
+                  style={{ fontSize: "15px", fontFamily: "'Manrope', sans-serif" }}
                 >
-                  <Plus className="w-4 h-4" />
-                  Create Workspace
-                </Button>
+                  Recent Workspaces
+                </h2>
+                <button
+                  className="text-stone-600 text-sm font-medium hover:text-zinc-800 transition-colors"
+                  style={{ fontFamily: "'Manrope', sans-serif" }}
+                >
+                  View all
+                </button>
               </div>
-              <Tabs defaultValue="allWorkspaces" className="w-full mt-6">
-                <TabsList className="grid grid-cols-2 border-b">
-                  <TabsTrigger
-                    value="allWorkspaces"
-                    className="data-[state=active]:bg-white data-[state=active]:text-blue-600"
-                  >
-                    All Workspaces
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="myWorkspaces"
-                    className="data-[state=active]:bg-white data-[state=active]:text-blue-600"
-                  >
-                    My Workspaces
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="allWorkspaces" className="p-4">
-                  {sharedWorkSpace.length > 0 && (
-                    <WorkspacesList
-                      workspaces={sharedWorkSpace}
-                      currentUser={user}
-                      createWorkSpace={() => setShowCreateWorkspace(true)}
-                    />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="myWorkspaces" className="p-4">
-                  {personalWorkSpace.length > 0 && (
-                    <WorkspacesList
-                      workspaces={personalWorkSpace}
-                      currentUser={user}
-                      createWorkSpace={() => setShowCreateWorkspace(true)}
-                    />
-                  )}
-                </TabsContent>
-              </Tabs>
+              <div className="flex-1 overflow-y-auto min-h-0 px-6 pb-4">
+                <WorkspacesList
+                  workspaces={recent}
+                  currentUser={user}
+                  createWorkSpace={() => setView("create-workspace")}
+                  onOpenWorkspace={(ws) => setSelectedWorkspace(ws)}
+                  title=""
+                />
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </main>
 
-      <CreateWorkspaceDialog
-        open={showCreateWorkspace}
-        onOpenChange={setShowCreateWorkspace}
-        onCreate={handleCreateWorkspace}
-      />
+            {/* All Workspaces */}
+            <div className="flex-1 flex flex-col bg-white rounded-2xl border border-zinc-300 overflow-hidden min-h-0">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
+                <h2
+                  className="text-zinc-800 font-semibold"
+                  style={{ fontSize: "15px", fontFamily: "'Manrope', sans-serif" }}
+                >
+                  All Workspaces
+                </h2>
+                {/* "View all" navigates to the table view */}
+                <button
+                  onClick={() => setView("all-workspaces")}
+                  className="text-stone-600 text-sm font-medium hover:text-zinc-800 transition-colors"
+                  style={{ fontFamily: "'Manrope', sans-serif" }}
+                >
+                  View all
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto min-h-0 px-6 pb-4">
+                <WorkspacesList
+                  workspaces={filtered}
+                  currentUser={user}
+                  createWorkSpace={() => setView("create-workspace")}
+                  onOpenWorkspace={(ws) => setSelectedWorkspace(ws)}
+                  title=""
+                />
+              </div>
+            </div>
+
+          </div>
+        </main>
+        )}
+
+          {/* Right Sidebar — contextual based on view */}
+          <RightSidebar
+            view={view}
+            onSelectTemplate={(t) => { setSelectedTemplate(t); setSelectedFile(null); setView("create-workspace"); }}
+            selectedTemplate={selectedTemplate}
+            onSelectFile={(f) => { setSelectedFile(f); setSelectedTemplate(null); setView("create-workspace"); }}
+            selectedFile={selectedFile}
+          />
+        </>
+      )}
     </div>
   );
 }

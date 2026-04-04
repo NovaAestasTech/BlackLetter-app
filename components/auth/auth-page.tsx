@@ -1,25 +1,24 @@
 "use client";
+// IMPORTENT
 
 import type React from "react";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { signIn as nextAuthSignIn } from "next-auth/react";
-import { FileText, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import DarkVeil from "@/components/ui/DarkVeil";
+
+const FONT = "'Playfair Display', serif";
+const PANEL_PAD = "44px 52px";
+const HEADING_SIZE = "36px";
+const TAGLINE_SIZE = "30px";
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -62,137 +61,401 @@ export function AuthPage() {
         }
       }
     } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message);
-      }
+      if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50 dark:from-slate-950 dark:via-slate-950 dark:to-blue-950 flex flex-col items-center justify-center p-4">
-      {/* Logo Section */}
-      <div className="mb-8 flex items-center gap-3">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-3 rounded-lg shadow-lg">
-          <FileText className="w-6 h-6" />
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "8px 12px",
+    border: "1px solid #d1d5db",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontFamily: FONT,
+    background: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "12px",
+    color: "#374151",
+    marginBottom: "4px",
+    fontFamily: FONT,
+    fontWeight: 600,
+  };
+
+  if (isLogin) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          fontFamily: FONT,
+        }}
+      >
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap');`}</style>
+
+        {/* LEFT — DarkVeil panel */}
+        <div
+          style={{
+            width: "45%",
+            position: "relative",
+            background: "#000",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "32px",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0 }}>
+            <DarkVeil hueShift={0} speed={0.3} warpAmount={1.2} noiseIntensity={0.04} />
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%, rgba(0,0,0,0.3) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+          {/* Top logo */}
+          <div style={{ position: "relative", zIndex: 10 }}>
+            <span style={{ color: "#fff", fontSize: "15px", fontFamily: FONT, fontWeight: 500 }}>
+              blackletter.
+            </span>
+          </div>
+          {/* Bottom tagline */}
+          <div style={{ position: "relative", zIndex: 10 }}>
+            <h2
+              style={{
+                color: "#fff",
+                fontSize: TAGLINE_SIZE,
+                fontWeight: 700,
+                lineHeight: 1.15,
+                fontFamily: FONT,
+                margin: 0,
+              }}
+            >
+              Workspace<br />for Modern Law.
+            </h2>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-          BlackLetter
-        </h1>
-      </div>
 
-      {/* Auth Card */}
-      <Card className="w-full max-w-md shadow-lg border-slate-200">
-        <CardHeader>
-          <CardTitle className="text-2xl">
-            {isLogin ? "Sign In" : "Create Account"}
-          </CardTitle>
-          <CardDescription>
-            {isLogin
-              ? "Access your legal agreements and workspaces"
-              : "Join LegalHub to start collaborating"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <label className="text-sm font-semibold text-slate-900 mb-2 block">
-                  Full Name
-                </label>
-                <Input
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
-                />
-              </div>
-            )}
+        {/* RIGHT — Form panel */}
+        <div
+          style={{
+            flex: 1,
+            backgroundColor: "#F7FFDC",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: PANEL_PAD,
+          }}
+        >
+          <h1
+            style={{
+              fontSize: HEADING_SIZE,
+              fontWeight: 700,
+              fontFamily: FONT,
+              color: "#111827",
+              marginBottom: "28px",
+              marginTop: 0,
+              lineHeight: 1.1,
+                justifySelf: "center",
+            }}
+          >
+            Welcome Back
+          </h1>
 
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             <div>
-              <label className="text-sm font-semibold text-slate-900 mb-2 block">
-                Email
-              </label>
-              <Input
+              <label style={labelStyle}>Email</label>
+              <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter Your Email ID"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Password</label>
+              <input
+                type="password"
+                placeholder="Enter Your Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={inputStyle}
               />
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-900 mb-2 block">
-                Password
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontFamily: FONT, color: "#374151", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{ width: "14px", height: "14px", accentColor: "#1a1a2e" }}
+                />
+                Remember me
               </label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 border-slate-300 focus:border-blue-500"
-              />
+              <button type="button" style={{ fontSize: "12px", fontFamily: FONT, color: "#374151", background: "none", border: "none", cursor: "pointer" }}>
+                Forgot password?
+              </button>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-200">
+              <div style={{ background: "#fef2f2", color: "#dc2626", fontSize: "13px", padding: "10px 14px", borderRadius: "6px", border: "1px solid #fecaca", fontFamily: FONT }}>
                 {error}
               </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10"
+              style={{
+                background: "#0f0f2d",
+                color: "#fff",
+                padding: "13px",
+                borderRadius: "6px",
+                fontSize: "15px",
+                fontWeight: 600,
+                fontFamily: FONT,
+                border: "none",
+                cursor: "pointer",
+                letterSpacing: "0.02em",
+              }}
             >
-              {isLogin ? "Sign In" : "Create Account"}
-            </Button>
+              Sign In
+            </button>
+
+            <div style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", fontFamily: FONT, display: "flex", alignItems: "center", gap: "12px" }}>
+              <span style={{ flex: 1, height: "1px", background: "#d1d5db" }} />
+              or
+              <span style={{ flex: 1, height: "1px", background: "#d1d5db" }} />
+            </div>
+
+            <button
+              type="button"
+              style={{
+                background: "#fff",
+                color: "#374151",
+                padding: "13px",
+                borderRadius: "6px",
+                fontSize: "15px",
+                fontFamily: FONT,
+                border: "1px solid #d1d5db",
+                cursor: "pointer",
+              }}
+            >
+              Login With SSO
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
-              {isLogin
-                ? "Don't have an account? "
-                : "Already have an account? "}
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError("");
-                }}
-                className="text-blue-600 hover:text-blue-700 font-semibold"
-              >
-                {isLogin ? "Sign Up" : "Sign In"}
-              </button>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Info Section */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
-        <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Templates</h3>
-          <p className="text-sm text-slate-600">
-            Professional legal agreement templates
+          <p style={{ marginTop: "24px", fontSize: "13px", fontFamily: FONT, color: "#6b7280", textAlign: "center" }}>
+            Don&apos;t have an account?{" "}
+            <button
+              onClick={() => { setIsLogin(false); setError(""); }}
+              style={{ fontWeight: 700, color: "#111827", background: "none", border: "none", cursor: "pointer", fontFamily: FONT, fontSize: "13px" }}
+            >
+              Sign Up
+            </button>
           </p>
         </div>
-        <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
+      </div>
+    );
+  }
+
+  // ── SIGNUP ──
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: FONT }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap');`}</style>
+
+      {/* LEFT — Form panel */}
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: "#F7FFDC",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: PANEL_PAD,
+        }}
+      >
+        <h1
+          style={{
+            fontSize: HEADING_SIZE,
+            fontWeight: 700,
+            fontFamily: FONT,
+            color: "#111827",
+            marginBottom: "28px",
+            marginTop: 0,
+            lineHeight: 1.1,
+          }}
+        >
+          Create your account
+        </h1>
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>First Name</label>
+              <input
+                type="text"
+                placeholder="Enter Your First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Last Name</label>
+              <input
+                type="text"
+                placeholder="Enter Your Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
           </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Collaborate</h3>
-          <p className="text-sm text-slate-600">Work together in real-time</p>
+
+          <div>
+            <label style={labelStyle}>Email</label>
+            <input
+              type="email"
+              placeholder="Enter Your Email ID"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontFamily: FONT, color: "#374151", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              style={{ width: "14px", height: "14px", accentColor: "#1a1a2e" }}
+            />
+            Remember me
+          </label>
+
+          {error && (
+            <div style={{ background: "#fef2f2", color: "#dc2626", fontSize: "13px", padding: "10px 14px", borderRadius: "6px", border: "1px solid #fecaca", fontFamily: FONT }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            style={{
+              background: "#0f0f2d",
+              color: "#fff",
+              padding: "11px",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: 600,
+              fontFamily: FONT,
+              border: "none",
+              cursor: "pointer",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Sign Up
+          </button>
+
+          <div style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", fontFamily: FONT, display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ flex: 1, height: "1px", background: "#d1d5db" }} />
+            or
+            <span style={{ flex: 1, height: "1px", background: "#d1d5db" }} />
+          </div>
+
+          <button
+            type="button"
+            style={{
+              background: "#fff",
+              color: "#374151",
+              padding: "11px",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontFamily: FONT,
+              border: "1px solid #d1d5db",
+              cursor: "pointer",
+            }}
+          >
+            Login With SSO
+          </button>
+        </form>
+
+        <p style={{ marginTop: "32px", fontSize: "14px", fontFamily: FONT, color: "#6b7280", textAlign: "center" }}>
+          Already have an account?{" "}
+          <button
+            onClick={() => { setIsLogin(true); setError(""); }}
+            style={{ fontWeight: 700, color: "#111827", background: "none", border: "none", cursor: "pointer", fontFamily: FONT, fontSize: "14px" }}
+          >
+            Login
+          </button>
+        </p>
+      </div>
+
+      {/* RIGHT — DarkVeil panel */}
+      <div
+        style={{
+          width: "45%",
+          position: "relative",
+          background: "#000",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "32px",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ position: "absolute", inset: 0 }}>
+          <DarkVeil hueShift={15} speed={0.3} warpAmount={1.2} noiseIntensity={0.04} />
         </div>
-        <div className="text-center">
-          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="font-semibold text-slate-900 mb-1">Secure</h3>
-          <p className="text-sm text-slate-600">Enterprise-grade security</p>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%, rgba(0,0,0,0.3) 100%)",
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "flex-end" }}>
+          <span style={{ color: "#fff", fontSize: "15px", fontFamily: FONT, fontWeight: 500 }}>
+            blackletter.
+          </span>
+        </div>
+        <div style={{ position: "relative", zIndex: 10, textAlign: "right" }}>
+          <h2
+            style={{
+              color: "#fff",
+              fontSize: TAGLINE_SIZE,
+              fontWeight: 700,
+              lineHeight: 1.15,
+              fontFamily: FONT,
+              fontStyle: "italic",
+              margin: 0,
+            }}
+          >
+            Replace chaos with<br />synchronicity.
+          </h2>
         </div>
       </div>
     </div>

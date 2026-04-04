@@ -23,6 +23,11 @@ export interface WorkspaceEditorProps {
   workspace: any;
   currentUser: any;
   onBack: () => void;
+  onTabChange: (tab: "dashboard" | "all" | "create") => void;
+  onCreateWorkspace: () => void;
+  onLogout: () => void;
+  initialTemplateToLoad?: Template | null;
+  initialFileToUpload?: File | null;
 }
 export interface ParsedDocument {
   content: string;
@@ -31,6 +36,8 @@ export interface WorkspacesListProps {
   workspaces: any[];
   currentUser: any;
   createWorkSpace: () => void;
+  title?: string;
+  onOpenWorkspace?: (workspace: any) => void;
 }
 export interface SharePermissionsDialogProps {
   open: boolean;

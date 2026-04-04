@@ -100,7 +100,7 @@ export async function POST(request: Request) {
       { new: true },
     );
 
-    return NextResponse.json(updatedUser, { status: 201 });
+    return NextResponse.json({ user: updatedUser, workspace: newWorkspace }, { status: 201 });
   } catch (error) {
     console.error("POST Error:", error);
     return NextResponse.json(

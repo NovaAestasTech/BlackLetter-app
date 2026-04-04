@@ -1,15 +1,16 @@
 "use client";
+// IMPORTENT
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   FileText,
-  Users,
-  Clock,
-  ArrowRight,
-  MoreVertical,
+  Scale,
+  Cloud,
+  BookOpen,
+  Folder,
+  FilePen,
   Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { WorkspaceEditor } from "./workspace-editor";
 import {
@@ -18,152 +19,175 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { Button } from "@/components/ui/button";
 import { WorkspacesListProps } from "@/utils/helper";
+
+// Deterministic icon + bg color based on workspace name
+const ICONS = [Scale, BookOpen, Cloud, FileText, FilePen, Folder];
+const ICON_COLORS = [
+  "bg-stone-300",
+  "bg-stone-200",
+  "bg-lime-100",
+  "bg-stone-300",
+  "bg-stone-100",
+  "bg-lime-100",
+];
+
+function getWorkspaceStyle(name: string) {
+  const idx = name.charCodeAt(0) % ICONS.length;
+  return { Icon: ICONS[idx], color: ICON_COLORS[idx] };
+}
+
+function formatRelativeTime(isoDate: string) {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(hours / 24);
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (days === 1) return "Yesterday";
+  return `${days} days ago`;
+}
+
+function MemberAvatar({ initial, color }: { initial: string; color: string }) {
+  return (
+    <div
+      className={`w-7 h-7 ${color} rounded-xl outline outline-2 outline-offset-[-2px] outline-stone-50 flex items-center justify-center -ml-2 first:ml-0`}
+    >
+      <span className="text-zinc-800 text-[10px] font-bold leading-4">{initial}</span>
+    </div>
+  );
+}
+
+interface ExtendedListProps extends WorkspacesListProps {
+  title: string;
+}
+
 export function WorkspacesList({
   workspaces,
   currentUser,
   createWorkSpace,
-}: WorkspacesListProps) {
-  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-  const [Workspaces, setWorkspaces] = useState(workspaces);
+  title,
+  onOpenWorkspace,
+}: ExtendedListProps) {
+  const [items, setItems] = useState(workspaces);
 
-  if (selectedWorkspace) {
-    return (
-      <WorkspaceEditor
-        workspace={selectedWorkspace}
-        currentUser={currentUser}
-        onBack={() => setSelectedWorkspace(null)}
-      />
-    );
+  // Sync when parent prop changes (search filter)
+  if (JSON.stringify(items.map((i) => i._id)) !== JSON.stringify(workspaces.map((i) => i._id))) {
+    setItems(workspaces);
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
   const deleteWorkSpace = async (id: string) => {
     try {
-      const res = await fetch(`/api/workspace?id=${id}`, {
-        method: "DELETE",
-      });
-      setWorkspaces((prev) => prev.filter((ws) => ws._id != id));
+      await fetch(`/api/workspace?id=${id}`, { method: "DELETE" });
+      setItems((prev) => prev.filter((ws) => ws._id !== id));
     } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message);
-      }
+      if (e instanceof Error) throw new Error(e.message);
       throw new Error("Uncertain about Error");
     }
   };
 
+
+  const AVATAR_COLORS = ["bg-neutral-200", "bg-lime-100", "bg-stone-300", "bg-stone-200"];
+
   return (
-    <div>
-      {Workspaces.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Workspaces.map((workspace) => (
-            <Card
-              key={workspace._id}
-              className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-slate-200 bg-white cursor-pointer hover:border-blue-300"
-              onClick={() => setSelectedWorkspace(workspace)}
-            >
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 h-20 flex items-center justify-between px-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-lg backdrop-blur-sm">
-                    {getInitials(workspace.name)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-sm">
-                      {workspace.name}
-                    </h3>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    asChild
-                    onClick={(e) => e.stopPropagation()}
+    <div style={{ fontFamily: "'Manrope', sans-serif" }}>
+      {items.length > 0 ? (
+        <div className="flex flex-col divide-y divide-neutral-200">
+          {items.map((workspace, idx) => {
+            const { Icon, color } = getWorkspaceStyle(workspace.name);
+            const visibleMembers = workspace.members.slice(0, 2);
+            const extraCount = workspace.members.length - 2;
+
+            return (
+              <div
+                key={workspace._id || idx}
+                onClick={() => onOpenWorkspace ? onOpenWorkspace(workspace) : null}
+                className={`px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition-colors ${
+                  idx > 0 ? "border-t border-neutral-400/20" : ""
+                }`}
+              >
+                {/* Left: icon + info */}
+                <div className="flex items-center gap-6">
+                  <div
+                    className={`w-10 h-10 ${color} rounded flex items-center justify-center shrink-0`}
                   >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-white/20"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  {workspace.owner === currentUser.id && (
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        className="gap-2 cursor-pointer text-red-600"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          await deleteWorkSpace(workspace._id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  )}
-                </DropdownMenu>
-              </div>
-
-              <CardContent className="pt-5 pb-5 space-y-4">
-                <p className="text-sm text-slate-600 line-clamp-2">
-                  {workspace.description}
-                </p>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Users className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium">
-                      {workspace.members.length} member
-                      {workspace.members.length !== 1 ? "s" : ""}
-                    </span>
+                    <Icon className="w-5 h-5 text-stone-600" />
                   </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>
-                      Modified{" "}
-                      {new Date(workspace.lastModified).toLocaleDateString()}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-zinc-800 text-base font-medium leading-6">
+                      {workspace.name}
+                    </span>
+                    <span className="text-stone-600 text-xs font-normal leading-4">
+                      Last edited {formatRelativeTime(workspace.lastModified)} •{" "}
+                      {workspace.documents?.length ?? 0} files
                     </span>
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => setSelectedWorkspace(workspace)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md transition-all group-hover:shadow-lg"
-                  size="sm"
+                {/* Right: member avatars + delete menu */}
+                <div
+                  className="flex items-center gap-10"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  Open Workspace
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  {/* Avatars */}
+                  <div className="flex items-center">
+                    {visibleMembers.map((m: any, i: number) => (
+                      <MemberAvatar
+                        key={m._id || i}
+                        initial={(m.email?.[0] ?? "?").toUpperCase()}
+                        color={AVATAR_COLORS[i % AVATAR_COLORS.length]}
+                      />
+                    ))}
+                    {extraCount > 0 && (
+                      <MemberAvatar
+                        initial={`+${extraCount}`}
+                        color={AVATAR_COLORS[2]}
+                      />
+                    )}
+                  </div>
+
+                  {/* Delete dropdown (owner only) */}
+                  {workspace.owner === currentUser.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="w-7 h-7 text-stone-500 hover:text-zinc-800">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          className="gap-2 cursor-pointer text-red-600"
+                          onClick={async () => {
+                            await deleteWorkSpace(workspace._id);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <Card className="border-dashed border-2 border-slate-300 bg-slate-50">
-          <CardContent className="pt-12 pb-12 text-center space-y-4">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-            <div>
-              <p className="text-slate-900 font-semibold">No workspaces yet</p>
-              <p className="text-slate-600 text-sm mt-1">
-                Create your first workspace to start collaborating
-              </p>
-            </div>
-            <Button
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={createWorkSpace}
-            >
-              Create Workspace
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="border-2 border-dashed border-zinc-300 rounded-xl py-12 flex flex-col items-center gap-4 bg-stone-50">
+          <FileText className="w-10 h-10 text-stone-300" />
+          <div className="text-center">
+            <p className="text-zinc-800 font-semibold text-sm">No workspaces yet</p>
+            <p className="text-stone-600 text-xs mt-1">
+              Create your first workspace to start collaborating
+            </p>
+          </div>
+          <button
+            onClick={createWorkSpace}
+            className="text-sm font-semibold text-zinc-800 bg-stone-200 hover:bg-stone-300 px-4 py-2 rounded-lg transition-colors"
+          >
+            Create Workspace
+          </button>
+        </div>
       )}
     </div>
   );
