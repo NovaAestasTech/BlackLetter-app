@@ -237,13 +237,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         )}
 
           {/* Right Sidebar — contextual based on view */}
-          <RightSidebar
+          {/* <RightSidebar
             view={view}
             onSelectTemplate={(t) => { setSelectedTemplate(t); setSelectedFile(null); setView("create-workspace"); }}
             selectedTemplate={selectedTemplate}
             onSelectFile={(f) => { setSelectedFile(f); setSelectedTemplate(null); setView("create-workspace"); }}
             selectedFile={selectedFile}
-          />
+          /> */}
         </>
       )}
     </div>
