@@ -48,6 +48,7 @@ export interface SharePermissionsDialogProps {
   onUpdateRole: (memberId: string, role: string) => void;
   currentUser: any;
   workspace: any;
+  documents: any;
 }
 
 export interface FileUploadDialogProps {

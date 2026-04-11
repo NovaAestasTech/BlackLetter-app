@@ -15,6 +15,8 @@ import { Template } from "@/app/templates/templates";
 
 import { ParsedDocument } from "@/utils/helper";
 import { WorkspaceEditorProps } from "@/utils/helper";
+import { Button } from "../ui/button";
+import { ObjectId } from "mongoose";
 
 const F = "'Manrope', sans-serif";
 
@@ -84,13 +86,25 @@ export function WorkspaceEditor({
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const { pdfName, pdfText, fetchPdfData } = useStore();
   const { setDocumentContent, setDocumentTitle } = useChatbot();
-
+  const [editableDocIds, setEditableDocIds] = useState<Set<ObjectId>>(
+    new Set(),
+  );
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/documents?id=${workspace._id}`, { method: "GET" });
+        const res = await fetch(
+          `/api/documents?id=${workspace._id}&userId=${currentUser.id}&userMail=${currentUser.email}`,
+          {
+            method: "GET",
+          },
+        );
         if (!res.ok) throw new Error("Failed to fetch documents");
         const data = await res.json();
+        const idSet = new Set<ObjectId>(
+          data.editableDoc.map((id: ObjectId) => id),
+        );
+        setEditableDocIds(idSet);
+
         setDocuments(data.documents);
         setWorkspaceMembers(data.members);
       } catch (error) {
@@ -150,10 +164,13 @@ export function WorkspaceEditor({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await fetch("https://python-parser-mkqr.onrender.com/parse_pdf", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://python-parser-mkqr.onrender.com/parse_pdf",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       const data = await response.json();
       const doc = {
         title,
@@ -189,17 +206,24 @@ export function WorkspaceEditor({
   };
 
   const handleRemoveMember = async (memberId: string) => {
-    await fetch(`/api/workspace?mId=${memberId}&wId=${workspace._id}&userId=${currentUser.id}`, {
-      method: "PATCH",
-    });
-    setWorkspaceMembers(workspaceMembers.filter((m: any) => m._id !== memberId));
+    await fetch(
+      `/api/workspace?mId=${memberId}&wId=${workspace._id}&userId=${currentUser.id}`,
+      {
+        method: "PATCH",
+      },
+    );
+    setWorkspaceMembers(
+      workspaceMembers.filter((m: any) => m._id !== memberId),
+    );
   };
 
   const handleUpdateMemberRole = (memberId: string, newRole: string) => {
     setWorkspaceMembers(
       workspaceMembers.map((m) =>
-        m.id === memberId ? { ...m, role: newRole, permissions: getRolePermissions(newRole) } : m
-      )
+        m.id === memberId
+          ? { ...m, role: newRole, permissions: getRolePermissions(newRole) }
+          : m,
+      ),
     );
   };
 
@@ -210,7 +234,9 @@ export function WorkspaceEditor({
   };
 
   const callTemplates = async () => {
-    try { setopenTemplate(true); } catch (e) {
+    try {
+      setopenTemplate(true);
+    } catch (e) {
       if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
@@ -221,10 +247,13 @@ export function WorkspaceEditor({
       const saveNewTemplateDoc = async () => {
         const formData = new FormData();
         formData.append("text", pdfText);
-        const response = await fetch("https://python-parser-mkqr.onrender.com/parse_text", {
-          method: "POST",
-          body: formData,
-        });
+        const response = await fetch(
+          "https://python-parser-mkqr.onrender.com/parse_text",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
         const data = await response.json();
         const doc = {
           title: pdfName || "New Template Document",
@@ -244,7 +273,9 @@ export function WorkspaceEditor({
   }, [pdfText, pdfName, isCreating]);
 
   const createTemplate = async (template: Template) => {
-    try { setIsCreating(true); } catch (e) {
+    try {
+      setIsCreating(true);
+    } catch (e) {
       if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
@@ -253,22 +284,37 @@ export function WorkspaceEditor({
   const handleDocumentShareConfirm = (sharedWith: any[]) => {
     if (selectedDocToShare) {
       const updatedDocs = documents.map((doc) =>
-        doc.id === selectedDocToShare.id ? { ...doc, sharedWith } : doc
+        doc.id === selectedDocToShare.id ? { ...doc, sharedWith } : doc,
       );
       setDocuments(updatedDocs);
     }
     setShowDocumentShare(false);
     setSelectedDocToShare(null);
   };
+  const openDoc = async (doc: any) => {
+    try {
+      setDocumentContent(doc.content);
+      setDocumentTitle(doc.title);
+      setSelectedDoc(doc);
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentified Error");
+    }
+  };
 
   if (selectedDoc) {
     (async () => {
       try {
-        const res = await fetch("https://editor.blackletter.co.in/api/ai/test-api", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: selectedDoc.content }),
-        });
+        const res = await fetch(
+          "https://editor.blackletter.co.in/api/ai/test-api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: selectedDoc.content }),
+          },
+        );
         if (res.ok) {
           setSelectedDoc(null);
           window.location.href = "https://editor.blackletter.co.in/";
@@ -280,8 +326,12 @@ export function WorkspaceEditor({
   }
 
   // Filtered members for sidebar search
-  const filteredMembers = workspaceMembers.filter((m: any) =>
-    !memberSearch || (m.email + (m.name ?? "")).toLowerCase().includes(memberSearch.toLowerCase())
+  const filteredMembers = workspaceMembers.filter(
+    (m: any) =>
+      !memberSearch ||
+      (m.email + (m.name ?? ""))
+        .toLowerCase()
+        .includes(memberSearch.toLowerCase()),
   );
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
@@ -293,9 +343,9 @@ export function WorkspaceEditor({
       {/* ─── Left Sidebar ─────────────────────────────────── */}
       <LeftSidebar
         activeTab="dashboard"
-        onTabChange={(tab) => { 
-          if (tab === "dashboard") onBack(); 
-          else onTabChange(tab); 
+        onTabChange={(tab) => {
+          if (tab === "dashboard") onBack();
+          else onTabChange(tab);
         }}
         onCreateWorkspace={onCreateWorkspace}
         onLogout={onLogout}
@@ -326,7 +376,6 @@ export function WorkspaceEditor({
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto min-h-0 px-6 pb-6 flex flex-col gap-4">
-
           {/* ── Info Card ──────────────────────────────────── */}
           <div className="bg-stone-100 rounded-lg p-5">
             <div className="flex items-start gap-10">
@@ -486,11 +535,6 @@ export function WorkspaceEditor({
                     className={`flex items-center cursor-pointer hover:bg-stone-50 transition-colors group ${
                       idx > 0 ? "border-t border-neutral-400/20" : ""
                     }`}
-                    onClick={() => {
-                      setDocumentContent(doc.content);
-                      setDocumentTitle(doc.title);
-                      setSelectedDoc(doc);
-                    }}
                   >
                     <div className="w-96 px-6 py-5">
                       <span
@@ -508,8 +552,8 @@ export function WorkspaceEditor({
                         {doc.fileType === "pdf"
                           ? "PDF"
                           : doc.fileType === "docx"
-                          ? "DOCX"
-                          : doc.fileType || workspace.name}
+                            ? "DOCX"
+                            : doc.fileType || workspace.name}
                       </span>
                     </div>
                     <div className="flex-1 px-6 py-5 flex items-center justify-between">
@@ -520,11 +564,23 @@ export function WorkspaceEditor({
                         {formatRelativeTime(doc.lastModified)}
                       </span>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleShareDocument(doc.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShareDocument(doc.id);
+                        }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity mr-4"
                       >
                         <MoreHorizontal className="w-4 h-4 text-stone-600" />
                       </button>
+                      {(doc.createdBy === currentUser?.id ||
+                        editableDocIds.has(doc._id)) && (
+                        <Button
+                          onClick={() => openDoc(doc)}
+                          className=" opacity-0 group-hover:opacity-100 transition-opacity mr-4"
+                        >
+                          Open
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -536,7 +592,6 @@ export function WorkspaceEditor({
 
       {/* ─── Right Sidebar ────────────────────────────────── */}
       <aside className="w-72 h-screen flex flex-col gap-3 pt-5 pb-2 pr-2 pl-2 shrink-0 overflow-hidden">
-
         {/* Manage Access */}
         <div className="bg-[#DEE6C4] rounded-lg p-5 flex flex-col gap-4 flex-1 overflow-hidden">
           <h3
@@ -551,19 +606,9 @@ export function WorkspaceEditor({
             <span className="text-stone-600 text-[10px] font-bold uppercase leading-4 tracking-wide">
               Invite Member
             </span>
-            <input
-              className="w-full px-4 py-3 bg-white rounded-md text-gray-500 text-sm font-normal outline-none"
-              placeholder="Email address"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              style={{ fontFamily: F }}
-            />
+
             <button
-              onClick={() => {
-                if (inviteEmail.trim()) {
-                  setShowShareDialog(true);
-                }
-              }}
+              onClick={() => setShowShareDialog(true)}
               className="w-full py-3 bg-stone-600 hover:bg-stone-700 rounded-md text-orange-50 text-xs font-bold uppercase tracking-wider transition-colors"
               style={{ fontFamily: F }}
             >
@@ -624,7 +669,9 @@ export function WorkspaceEditor({
                 </div>
               ))}
               {filteredMembers.length === 0 && (
-                <p className="text-stone-600/50 text-xs text-center py-2">No members found.</p>
+                <p className="text-stone-600/50 text-xs text-center py-2">
+                  No members found.
+                </p>
               )}
             </div>
           </div>
@@ -673,6 +720,7 @@ export function WorkspaceEditor({
         onUpdateRole={handleUpdateMemberRole}
         currentUser={currentUser}
         workspace={workspace}
+        documents={documents}
       />
       <FileUploadDialog
         open={showFileUpload}

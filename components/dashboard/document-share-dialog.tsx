@@ -93,9 +93,9 @@ export function DocumentShareDialog({
 
           <TabsContent value="members" className="space-y-4 py-4">
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-              {workspaceMembers.map((member) => (
+              {workspaceMembers.map((member, idx) => (
                 <Card
-                  key={member.id}
+                  key={member.id || idx}
                   className="p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3">

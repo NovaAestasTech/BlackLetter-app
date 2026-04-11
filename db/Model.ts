@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Schema } from "mongoose";
+const { Schema } = mongoose;
 
 const WorkspaceSchema = new Schema({
   name: {
@@ -25,8 +25,12 @@ const WorkspaceSchema = new Schema({
         ref: "Users",
       },
       email: { type: String, required: true },
-      role: { type: String, default: "editor" },
+      role: {
+        type: String,
 
+        enum: ["owner", "member"],
+        default: "member",
+      },
       joinedAt: { type: Date, default: Date.now },
     },
   ],
@@ -46,6 +50,7 @@ const WorkspaceSchema = new Schema({
     default: Date.now,
   },
 });
+
 const userSchema = new Schema(
   {
     Email: {
@@ -57,6 +62,12 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    editableDocuments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Document",
+      },
+    ],
     workspaces: [
       {
         type: mongoose.Schema.Types.ObjectId,
