@@ -73,7 +73,7 @@ export function SharePermissionsDialog({
     const editableDocIds = Object.entries(docPermissions)
       .filter(([_, level]) => level === "write")
       .map(([id]) => id);
-    console.log(editableDocIds);
+
     try {
       const response = await fetch("/api/workspace/invite", {
         method: "POST",

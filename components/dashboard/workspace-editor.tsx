@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { Search, Plus, MoreHorizontal } from "lucide-react";
 
 import { SharePermissionsDialog } from "./share-permissions-dialog";
-import { DocumentShareDialog } from "./document-share-dialog";
+import { DocumentermissionRequestDialog } from "./document-share-dialog";
 import { FileUploadDialog } from "./file-upload-dialog";
 import { LeftSidebar } from "./left-sidebar";
 import { useStore } from "@/store/useStore";
@@ -16,7 +16,7 @@ import { Template } from "@/app/templates/templates";
 import { ParsedDocument } from "@/utils/helper";
 import { WorkspaceEditorProps } from "@/utils/helper";
 import { Button } from "../ui/button";
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 
 const F = "'Manrope', sans-serif";
 
@@ -89,6 +89,7 @@ export function WorkspaceEditor({
   const [editableDocIds, setEditableDocIds] = useState<Set<ObjectId>>(
     new Set(),
   );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -158,6 +159,33 @@ export function WorkspaceEditor({
     setNewDocTitle("");
     setShowNewDoc(false);
     await addDocument(doc, workspace._id);
+  };
+  const sendRequest = async (data: {
+    message: string;
+    accessType: string;
+    id: ObjectId;
+  }) => {
+    try {
+      const res = await fetch("/api/inbox", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requester: new mongoose.Types.ObjectId(currentUser.id),
+          ownerId: data.id,
+          workspaceId: workspace._id,
+          documentId: selectedDocToShare._id,
+          documentTitle: selectedDocToShare.title,
+          requestAccess: data.accessType,
+          message: data.message,
+          user: currentUser,
+        }),
+      });
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentified Error");
+    }
   };
 
   const handleFileUpload = async (file: File, title: string) => {
@@ -728,13 +756,15 @@ export function WorkspaceEditor({
         onFileUpload={handleFileUpload}
       />
       {selectedDocToShare && (
-        <DocumentShareDialog
+        <DocumentermissionRequestDialog
           open={showDocumentShare}
           onOpenChange={setShowDocumentShare}
           document={selectedDocToShare}
-          workspaceMembers={workspaceMembers}
-          sharedWith={selectedDocToShare.sharedWith || []}
-          onShare={handleDocumentShareConfirm}
+          workspace={workspace}
+          user={currentUser}
+          onSendRequest={async (data) => {
+            await sendRequest(data);
+          }}
         />
       )}
     </div>

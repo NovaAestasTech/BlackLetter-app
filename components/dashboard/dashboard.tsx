@@ -14,8 +14,9 @@ import { RightSidebar } from "./right-sidebar";
 import { type Template } from "@/app/templates/templates";
 
 import { WorkSpace, DashboardProps } from "@/utils/helper";
+import { InboxView } from "./Inbox";
 
-type View = "dashboard" | "all-workspaces" | "create-workspace";
+type View = "dashboard" | "all-workspaces" | "create-workspace" | "inbox";
 
 export function Dashboard({ user, onLogout }: DashboardProps) {
   const [workspaces, setWorkspaces] = useState<WorkSpace[]>([]);
@@ -27,6 +28,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     null,
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [request, setrequest] = useState([]);
 
   useEffect(() => {
     const fetchWorkspaces = async () => {
@@ -42,7 +44,23 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         throw new Error("Unknown error occurred");
       }
     };
+    const fetchRequest = async () => {
+      try {
+        const res = await fetch(`/api/inbox?userId=${user.id}`);
+
+        const data = await res.json();
+
+        setrequest(data);
+      } catch (e) {
+        if (e instanceof Error) {
+          throw new Error(e.message);
+        }
+        throw new Error("Unidentified Error");
+      }
+    };
+
     fetchWorkspaces();
+    fetchRequest();
   }, []);
 
   const addNewWorkSpace = async (workspace: WorkSpace) => {
@@ -91,11 +109,15 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     .slice(0, 5);
 
   // Sidebar tab → view mapping
-  const handleTabChange = (tab: "dashboard" | "all" | "create") => {
+  const handleTabChange = (tab: "dashboard" | "all" | "create" | "inbox") => {
     if (tab === "all") {
       setSelectedTemplate(null);
       setSelectedFile(null);
       setView("all-workspaces");
+      return;
+    }
+    if (tab === "inbox") {
+      setView("inbox");
       return;
     }
     if (tab === "create") {
@@ -110,13 +132,14 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     }
   };
 
-  // Which sidebar tab is "active"?
-  const activeTab: "dashboard" | "all" | "create" =
+  const activeTab: "dashboard" | "all" | "create" | "inbox" =
     view === "all-workspaces"
       ? "all"
       : view === "create-workspace"
         ? "create"
-        : "dashboard";
+        : view === "inbox"
+          ? "inbox"
+          : "dashboard";
 
   return (
     <div
@@ -166,6 +189,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
               onCreateWorkspace={() => setView("create-workspace")}
               onOpenWorkspace={(ws) => setSelectedWorkspace(ws)}
             />
+          ) : view === "inbox" ? (
+            <InboxView user={user} data={request} />
           ) : (
             /* ── Dashboard overview ────────────────────────────── */
             <main className="flex-1 h-screen flex flex-col overflow-hidden">

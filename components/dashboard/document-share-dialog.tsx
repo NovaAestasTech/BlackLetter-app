@@ -1,284 +1,217 @@
 "use client";
-// IMPORTENT
 
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, Link2, Mail, Lock, Globe } from "lucide-react";
-import { DocumentShareDialogProps } from "@/utils/helper";
+import { Textarea } from "@/components/ui/textarea";
+import { Mail, ShieldAlert, User, Send, Check, Lock } from "lucide-react";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { ObjectId } from "mongoose";
 
-export function DocumentShareDialog({
+interface RequestPermissionProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  document: {
+    id: string;
+    title: string;
+    ownerName: string;
+    ownerEmail: string;
+  };
+  user: any;
+  workspace: any;
+  onSendRequest: (data: {
+    message: string;
+    accessType: "view" | "edit";
+    id: ObjectId;
+  }) => void;
+}
+
+export function DocumentermissionRequestDialog({
   open,
   onOpenChange,
+  workspace,
   document,
-  workspaceMembers,
-  sharedWith,
-  onShare,
-}: DocumentShareDialogProps) {
-  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(
-    new Set(sharedWith.map((s) => s.memberId)),
-  );
-  const [copied, setCopied] = useState(false);
-  const [linkAccess, setLinkAccess] = useState<"view" | "edit">("view");
-  const [shareMode, setShareMode] = useState<"members" | "link">("members");
-
-  const shareLink = `https://legalhub.app/documents/${document.id}/access/${Math.random().toString(36).substr(2, 12)}`;
-
-  const handleToggleMember = (memberId: string) => {
-    const newSelected = new Set(selectedMembers);
-    if (newSelected.has(memberId)) {
-      newSelected.delete(memberId);
-    } else {
-      newSelected.add(memberId);
+  user,
+  onSendRequest,
+}: RequestPermissionProps) {
+  const [message, setMessage] = useState("");
+  const [accessType, setAccessType] = useState<"view" | "edit">("edit");
+  const [isSent, setIsSent] = useState(false);
+  const [Email, setEmail] = useState("");
+  const [id, setId] = useState<ObjectId>();
+  useEffect(() => {
+    try {
+      async function gatherInfo(workspace: any) {
+        const res = await fetch(`/api/userInfo?owner=${workspace.owner}`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        setEmail(data.Email);
+        setId(data.id);
+        return;
+      }
+      gatherInfo(workspace);
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      throw new Error("Unidentifed Error");
     }
-    setSelectedMembers(newSelected);
-  };
+  }, [workspace]);
 
-  const handleSaveShare = () => {
-    const sharedWithData = workspaceMembers
-      .filter((m) => selectedMembers.has(m.id))
-      .map((m) => ({
-        memberId: m.id,
-        memberName: m.name,
-        memberEmail: m.email,
-        sharedAt: new Date().toISOString(),
-        access: "view",
-      }));
+  const handleRequest = () => {
+    if (!id) {
+      throw new Error("Id not found");
+    }
+    if (id === user.id) {
+      return;
+    }
 
-    onShare(sharedWithData);
-  };
+    onSendRequest({ message, accessType, id });
+    setIsSent(true);
 
-  const copyShareLink = () => {
-    navigator.clipboard.writeText(shareLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => {
+      setIsSent(false);
+      onOpenChange(false);
+    }, 2000);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Share Document</DialogTitle>
-          <DialogDescription>
-            Share "{document.title}" with team members or via link
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs
-          value={shareMode}
-          onValueChange={(value) => setShareMode(value as "members" | "link")}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="members" className="gap-2">
-              <Mail className="w-4 h-4" />
-              Share with Members
-            </TabsTrigger>
-            <TabsTrigger value="link" className="gap-2">
-              <Link2 className="w-4 h-4" />
-              Share Link
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="members" className="space-y-4 py-4">
-            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-              {workspaceMembers.map((member, idx) => (
-                <Card
-                  key={member.id || idx}
-                  className="p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={selectedMembers.has(member.id)}
-                      onCheckedChange={() => handleToggleMember(member.id)}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground">
-                        {member.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {member.email}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="ml-auto">
-                      {member.role}
-                    </Badge>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {selectedMembers.size > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-blue-900">
-                  Sharing with {selectedMembers.size} member
-                  {selectedMembers.size !== 1 ? "s" : ""}
-                </p>
+      <DialogContent
+        className="max-w-2xl p-0 overflow-hidden border-zinc-300 bg-stone-50"
+        style={{ fontFamily: "'Manrope', sans-serif" }}
+      >
+        <DialogTitle></DialogTitle>
+        <main className="flex flex-col h-full">
+          {/* Dashboard-style Header */}
+          <div className="px-8 pt-8 pb-4 shrink-0">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 bg-stone-200 rounded-lg">
+                <Lock className="w-4 h-4 text-zinc-800" />
               </div>
-            )}
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  handleSaveShare();
-                  onOpenChange(false);
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Share Document
-              </Button>
+              <span className="text-[12px] font-bold text-stone-500 uppercase tracking-wider">
+                Access Required
+              </span>
             </div>
-          </TabsContent>
+            <h1
+              className="text-zinc-800 font-extrabold"
+              style={{
+                fontSize: "32px",
+                lineHeight: "40px",
+              }}
+            >
+              Request Access
+            </h1>
+            <p className="text-stone-500 text-sm font-medium mt-1">
+              Requesting permission for:{" "}
+              <span className="text-zinc-800 font-bold">{document.title}</span>
+            </p>
+          </div>
 
-          <TabsContent value="link" className="space-y-4 py-4">
-            <div className="space-y-4">
-              {/* Link Access Control */}
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-3">
-                <h3 className="font-semibold text-slate-900 text-sm">
-                  Link Access Level
-                </h3>
-                <div className="space-y-2">
-                  <label
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-white cursor-pointer transition-colors"
-                    onClick={() => setLinkAccess("view")}
-                  >
-                    <input
-                      type="radio"
-                      checked={linkAccess === "view"}
-                      onChange={() => setLinkAccess("view")}
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900">View Only</p>
-                      <p className="text-xs text-slate-600">
-                        Recipients can only view the document
-                      </p>
-                    </div>
-                  </label>
-                  <label
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-white cursor-pointer transition-colors"
-                    onClick={() => setLinkAccess("edit")}
-                  >
-                    <input
-                      type="radio"
-                      checked={linkAccess === "edit"}
-                      onChange={() => setLinkAccess("edit")}
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900">Can Edit</p>
-                      <p className="text-xs text-slate-600">
-                        Recipients can view and edit the document
-                      </p>
-                    </div>
-                  </label>
-                </div>
+          <div className="px-8 pb-8 space-y-6">
+            {/* Owner Section - Styled like your Workspace boxes */}
+            <div className="bg-white rounded-2xl border border-zinc-300 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 bg-stone-100/50 border-b border-zinc-200">
+                <h2 className="text-zinc-800 font-bold text-[14px]">
+                  Document Owner
+                </h2>
               </div>
-
-              {/* Share Link */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Link2 className="w-4 h-4 text-blue-600" />
+              <div className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-stone-200 flex items-center justify-center">
+                    <User className="w-5 h-5 text-stone-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">
-                      Shareable Link
-                    </p>
-                    <p className="text-xs text-slate-600">
-                      Anyone with this link can access the document
-                    </p>
+                    <p className="text-sm font-bold text-zinc-800">{Email}</p>
                   </div>
                 </div>
+                <div className="px-3 py-1 bg-stone-100 border border-zinc-200 rounded-full text-[10px] font-bold text-zinc-600 uppercase">
+                  Owner
+                </div>
+              </div>
+            </div>
 
-                <div className="flex gap-2">
-                  <Input
-                    value={shareLink}
-                    readOnly
-                    className="bg-white font-mono text-sm text-slate-700"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyShareLink}
-                    className="gap-2 whitespace-nowrap bg-transparent"
+            {/* Request Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-stone-500 uppercase ml-1">
+                  Access Level
+                </label>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setAccessType("view")}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
+                      accessType === "view"
+                        ? "bg-zinc-800 border-zinc-800 text-white shadow-md"
+                        : "bg-white border-zinc-300 text-zinc-600 hover:border-zinc-400"
+                    }`}
                   >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                    {copied ? "Copied" : "Copy"}
-                  </Button>
+                    <span className="text-sm font-bold">View Only</span>
+                    {accessType === "view" && <Check className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => setAccessType("edit")}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
+                      accessType === "edit"
+                        ? "bg-zinc-800 border-zinc-800 text-white shadow-md"
+                        : "bg-white border-zinc-300 text-zinc-600 hover:border-zinc-400"
+                    }`}
+                  >
+                    <span className="text-sm font-bold">Full Edit</span>
+                    {accessType === "edit" && <Check className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
-              {/* Link Preview Card */}
-              <Card className="p-4 bg-slate-50 border-slate-200">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-amber-100 p-2 rounded-lg flex-shrink-0">
-                      <Globe className="w-4 h-4 text-amber-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-slate-900">Link Preview</p>
-                      <p className="text-sm text-slate-600 mt-1">
-                        When someone opens this link, they'll see:
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Preview Box */}
-                  <div className="bg-white rounded-lg border border-slate-200 p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <p className="font-semibold text-slate-900 text-sm">
-                        {document.title}
-                      </p>
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Shared document •{" "}
-                      {linkAccess === "view" ? "View only" : "Can edit"}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Permissions Info */}
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-slate-600" />
-                  <p className="text-sm font-medium text-slate-900">
-                    Privacy & Security
-                  </p>
-                </div>
-                <ul className="text-xs text-slate-600 space-y-1 ml-6">
-                  <li>• Only people with the link can access</li>
-                  <li>• Link access can be revoked anytime</li>
-                  <li>• All edits are tracked in version history</li>
-                </ul>
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-stone-500 uppercase ml-1">
+                  Message
+                </label>
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="I need access to..."
+                  className="min-h-[102px] bg-white border-zinc-300 rounded-xl focus:ring-zinc-800 text-sm"
+                />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Done
-              </Button>
+            {/* Footer Actions */}
+            <div className="pt-4 flex items-center justify-between border-t border-zinc-200">
+              <div className="flex items-center gap-2 text-stone-400">
+                <ShieldAlert className="w-4 h-4" />
+                <span className="text-[11px] font-medium">
+                  Request will be sent via email
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => onOpenChange(false)}
+                  className="text-stone-500 font-bold hover:text-zinc-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleRequest}
+                  disabled={isSent}
+                  className="bg-zinc-800 hover:bg-zinc-900 text-white px-8 rounded-xl font-bold transition-all h-11"
+                >
+                  {isSent ? (
+                    <span className="flex items-center gap-2">
+                      <Check className="w-4 h-4" /> Sent
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Send className="w-4 h-4" /> Send Request
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </main>
       </DialogContent>
     </Dialog>
   );

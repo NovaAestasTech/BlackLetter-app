@@ -123,6 +123,42 @@ const documentSchema = new Schema({
     type: String,
   },
 });
+const PermissionRequestSchema = new Schema(
+  {
+    requester: {
+      id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+    },
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    workspaceId: {
+      type: Schema.Types.ObjectId,
+      ref: "Workspace",
+      required: true,
+    },
+    documentId: { type: String },
+    documentTitle: { type: String, required: true },
+    requestedAccess: {
+      type: String,
+      enum: ["view", "edit"],
+      default: "view",
+    },
+    message: { type: String, maxlength: 500 },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "denied"],
+      default: "pending",
+      index: true,
+    },
+  },
+  { timestamps: true },
+);
+PermissionRequestSchema.index({ ownerId: 1, status: 1 });
 const WorkSpaces =
   mongoose.models.WorkSpaces || mongoose.model("WorkSpaces", WorkspaceSchema);
 export default WorkSpaces;
@@ -131,3 +167,7 @@ const Documents =
 export { Documents };
 const Users = mongoose.models.Users || mongoose.model("Users", userSchema);
 export { Users };
+const PermissionRequest =
+  mongoose.models.PermissionRequest ||
+  mongoose.model("PermissionRequest", PermissionRequestSchema);
+export { PermissionRequest };
