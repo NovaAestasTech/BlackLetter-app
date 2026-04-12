@@ -89,6 +89,7 @@ export function WorkspaceEditor({
   const [editableDocIds, setEditableDocIds] = useState<Set<ObjectId>>(
     new Set(),
   );
+  const [role, setrole] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -323,8 +324,10 @@ export function WorkspaceEditor({
     setShowDocumentShare(false);
     setSelectedDocToShare(null);
   };
-  const openDoc = async (doc: any) => {
+  const openDoc = async (doc: any, type: string) => {
     try {
+      setrole(type);
+
       setDocumentContent(doc.content);
       setDocumentTitle(doc.title);
       setSelectedDoc(doc);
@@ -344,7 +347,7 @@ export function WorkspaceEditor({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: selectedDoc.content }),
+            body: JSON.stringify({ content: selectedDoc.content, role: role }),
           },
         );
         if (res.ok) {
@@ -606,14 +609,22 @@ export function WorkspaceEditor({
                           <MoreHorizontal className="w-4 h-4 text-stone-600" />
                         </button>
                       )}
-                      {(currentUser.id === workspace.owner ||
-                        doc.createdBy === currentUser?.id ||
-                        editableDocIds.has(doc._id)) && (
+
+                      {currentUser.id === workspace.owner ||
+                      doc.createdBy === currentUser?.id ||
+                      editableDocIds.has(doc._id) ? (
                         <Button
-                          onClick={() => openDoc(doc)}
-                          className=" opacity-0 group-hover:opacity-100 transition-opacity mr-4"
+                          onClick={() => openDoc(doc, "edit")}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity mr-4 bg-zinc-800 hover:bg-zinc-900 text-white shadow-sm"
                         >
                           Open
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => openDoc(doc, "read")}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity mr-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm border-none"
+                        >
+                          Read
                         </Button>
                       )}
                     </div>
