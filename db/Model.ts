@@ -145,8 +145,8 @@ const PermissionRequestSchema = new Schema(
     documentTitle: { type: String, required: true },
     requestedAccess: {
       type: String,
-      enum: ["view", "edit"],
-      default: "view",
+      enum: ["read", "edit"],
+      default: "read",
     },
     message: { type: String, maxlength: 500 },
     status: {

@@ -28,7 +28,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     null,
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [request, setrequest] = useState([]);
+  const [request, setrequest] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchWorkspaces = async () => {

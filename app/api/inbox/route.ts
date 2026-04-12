@@ -34,7 +34,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     await connectToDatabase();
+
     const body = await req.json();
+
     const requestDetails = await PermissionRequest.create({
       requester: {
         id: body.requester,
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
       workspaceId: body.workspaceId,
       documentId: body.documentId,
       documentTitle: body.documentTitle,
-      requestAccess: body.accessType,
+      requestedAccess: body.requestAccess,
       message: body.message,
     });
     if (!requestDetails) {
@@ -69,21 +71,29 @@ export async function PATCH(req: Request) {
     const { searchParams } = new URL(req.url);
     const requesterId = searchParams.get("requesterId");
     const docId = searchParams.get("docId");
-    const id = searchParams.get("id");
-    const updatedUser = await Users.findByIdAndUpdate(
-      requesterId,
-      {
-        $addToSet: { editableDocuments: docId },
-      },
-      { new: true },
-    );
+    console.log(docId);
+    if (!docId) {
+      return NextResponse.json({ message: "No id given" }, { status: 500 });
+    }
+    const id = searchParams.get("reqId");
+    const action = req.headers.get("action");
+
+    if (action === "approved") {
+      const updatedUser = await Users.findByIdAndUpdate(
+        requesterId,
+        {
+          $addToSet: { editableDocuments: docId },
+        },
+        { new: true },
+      );
+    }
     const requestedUser = await PermissionRequest.findByIdAndUpdate(
       id,
-      { status: "approved" },
+      { status: action },
       { new: true },
     );
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({ message: "updated" }, { status: 200 });
   } catch (e) {
     if (e instanceof Error) {
       throw new Error(e.message);

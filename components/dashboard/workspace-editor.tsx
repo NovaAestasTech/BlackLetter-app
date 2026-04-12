@@ -164,7 +164,10 @@ export function WorkspaceEditor({
     message: string;
     accessType: string;
     id: ObjectId;
+    docId: ObjectId;
+    doctitle: string;
   }) => {
+    console.log(data);
     try {
       const res = await fetch("/api/inbox", {
         method: "POST",
@@ -173,13 +176,14 @@ export function WorkspaceEditor({
           requester: new mongoose.Types.ObjectId(currentUser.id),
           ownerId: data.id,
           workspaceId: workspace._id,
-          documentId: selectedDocToShare._id,
-          documentTitle: selectedDocToShare.title,
+          documentId: data.docId,
+          documentTitle: data.doctitle,
           requestAccess: data.accessType,
           message: data.message,
           user: currentUser,
         }),
       });
+      console.log(await res.json());
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message);
@@ -255,8 +259,8 @@ export function WorkspaceEditor({
     );
   };
 
-  const handleShareDocument = (docId: string) => {
-    const doc = documents.find((d) => d.id === docId);
+  const handleShareDocument = (docId: ObjectId) => {
+    const doc = documents.find((d) => d._id === docId);
     setSelectedDocToShare(doc);
     setShowDocumentShare(true);
   };
@@ -591,16 +595,19 @@ export function WorkspaceEditor({
                       >
                         {formatRelativeTime(doc.lastModified)}
                       </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShareDocument(doc.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity mr-4"
-                      >
-                        <MoreHorizontal className="w-4 h-4 text-stone-600" />
-                      </button>
-                      {(doc.createdBy === currentUser?.id ||
+                      {currentUser.id != workspace.owner && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareDocument(doc._id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity mr-4"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-stone-600" />
+                        </button>
+                      )}
+                      {(currentUser.id === workspace.owner ||
+                        doc.createdBy === currentUser?.id ||
                         editableDocIds.has(doc._id)) && (
                         <Button
                           onClick={() => openDoc(doc)}

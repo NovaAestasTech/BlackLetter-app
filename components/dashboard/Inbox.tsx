@@ -2,9 +2,17 @@
 
 import { Mail, Clock, Check, X, User } from "lucide-react";
 import mongoose, { ObjectId } from "mongoose";
-
+import useSWR from "swr";
 export function InboxView({ user, data }: { user: any; data: any[] }) {
   const F = "'Manrope', sans-serif";
+  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+  const {
+    data: requests,
+
+    mutate,
+  } = useSWR(`/api/inbox?userId=${user.id}`, fetcher, {
+    refreshInterval: 3000,
+  });
 
   const handleAction = async (
     id: ObjectId,
@@ -12,16 +20,21 @@ export function InboxView({ user, data }: { user: any; data: any[] }) {
     requester_id: ObjectId,
     docId: string,
   ) => {
-    if (action === "approved") {
-      const res = await fetch(
-        `/api/inbox?docId=${new mongoose.Types.ObjectId(docId)}&requesterId=${requester_id}&reqId=${id}`,
-        {
-          method: "PATCH",
+    const res = await fetch(
+      `/api/inbox?docId=${new mongoose.Types.ObjectId(docId)}&requesterId=${requester_id}&reqId=${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          action: action,
         },
-      );
-      const data = await res.json();
-      return;
-    }
+      },
+    );
+
+    const newres = await res.json();
+
+    mutate();
+
+    return;
   };
 
   return (
@@ -44,9 +57,9 @@ export function InboxView({ user, data }: { user: any; data: any[] }) {
           {/* List Header */}
           <div className="px-6 py-4 border-b border-zinc-100 bg-stone-50/50 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-widest text-stone-400">
-              {data?.length || 0} Pending Requests
+              {requests?.length || 0} Pending Requests
             </span>
-            {data?.length > 0 && (
+            {requests?.length > 0 && (
               <button className="text-stone-600 text-xs font-semibold hover:text-zinc-800 transition-colors">
                 Mark all as read
               </button>
@@ -55,8 +68,8 @@ export function InboxView({ user, data }: { user: any; data: any[] }) {
 
           {/* List Section */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-            {data && data.length > 0 ? (
-              data.map((req, idx) => (
+            {requests && requests.length > 0 ? (
+              requests.map((req: any, idx: any) => (
                 <div
                   key={req._id | idx}
                   className="p-4 rounded-xl border border-zinc-100 hover:border-zinc-300 hover:bg-stone-50/50 transition-all flex items-center gap-4 bg-white"
@@ -115,7 +128,12 @@ export function InboxView({ user, data }: { user: any; data: any[] }) {
                     </button>
                     <button
                       onClick={() =>
-                        handleAction(req._id, "denied", req.requester.id)
+                        handleAction(
+                          req._id,
+                          "denied",
+                          req.requester.id,
+                          req.documentId,
+                        )
                       }
                       className="px-3 py-2 bg-white hover:bg-red-50 text-stone-500 hover:text-red-600 rounded-lg text-xs font-bold border border-zinc-200 transition-all"
                     >

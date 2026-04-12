@@ -6,23 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, ShieldAlert, User, Send, Check, Lock } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { ObjectId } from "mongoose";
+
+import mongoose, { ObjectId } from "mongoose";
 
 interface RequestPermissionProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  document: {
-    id: string;
-    title: string;
-    ownerName: string;
-    ownerEmail: string;
-  };
+  document: any;
   user: any;
   workspace: any;
   onSendRequest: (data: {
     message: string;
-    accessType: "view" | "edit";
+    accessType: "read" | "edit";
     id: ObjectId;
+    docId: ObjectId;
+    doctitle: string;
   }) => void;
 }
 
@@ -35,7 +33,7 @@ export function DocumentermissionRequestDialog({
   onSendRequest,
 }: RequestPermissionProps) {
   const [message, setMessage] = useState("");
-  const [accessType, setAccessType] = useState<"view" | "edit">("edit");
+  const [accessType, setAccessType] = useState<"read" | "edit">("edit");
   const [isSent, setIsSent] = useState(false);
   const [Email, setEmail] = useState("");
   const [id, setId] = useState<ObjectId>();
@@ -67,7 +65,13 @@ export function DocumentermissionRequestDialog({
       return;
     }
 
-    onSendRequest({ message, accessType, id });
+    onSendRequest({
+      message,
+      accessType,
+      id,
+      docId: document._id,
+      doctitle: document.title,
+    });
     setIsSent(true);
 
     setTimeout(() => {
@@ -140,15 +144,15 @@ export function DocumentermissionRequestDialog({
                 </label>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => setAccessType("view")}
+                    onClick={() => setAccessType("read")}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
-                      accessType === "view"
+                      accessType === "read"
                         ? "bg-zinc-800 border-zinc-800 text-white shadow-md"
                         : "bg-white border-zinc-300 text-zinc-600 hover:border-zinc-400"
                     }`}
                   >
                     <span className="text-sm font-bold">View Only</span>
-                    {accessType === "view" && <Check className="w-4 h-4" />}
+                    {accessType === "read" && <Check className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => setAccessType("edit")}
