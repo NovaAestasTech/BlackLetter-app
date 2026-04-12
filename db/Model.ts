@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Schema } from "mongoose";
+const { Schema } = mongoose;
 
 const WorkspaceSchema = new Schema({
   name: {
@@ -25,8 +25,12 @@ const WorkspaceSchema = new Schema({
         ref: "Users",
       },
       email: { type: String, required: true },
-      role: { type: String, default: "editor" },
+      role: {
+        type: String,
 
+        enum: ["owner", "member"],
+        default: "member",
+      },
       joinedAt: { type: Date, default: Date.now },
     },
   ],
@@ -46,6 +50,7 @@ const WorkspaceSchema = new Schema({
     default: Date.now,
   },
 });
+
 const userSchema = new Schema(
   {
     Email: {
@@ -57,6 +62,12 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    editableDocuments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Document",
+      },
+    ],
     workspaces: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -112,6 +123,42 @@ const documentSchema = new Schema({
     type: String,
   },
 });
+const PermissionRequestSchema = new Schema(
+  {
+    requester: {
+      id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+    },
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    workspaceId: {
+      type: Schema.Types.ObjectId,
+      ref: "Workspace",
+      required: true,
+    },
+    documentId: { type: String },
+    documentTitle: { type: String, required: true },
+    requestedAccess: {
+      type: String,
+      enum: ["read", "edit"],
+      default: "read",
+    },
+    message: { type: String, maxlength: 500 },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "denied"],
+      default: "pending",
+      index: true,
+    },
+  },
+  { timestamps: true },
+);
+PermissionRequestSchema.index({ ownerId: 1, status: 1 });
 const WorkSpaces =
   mongoose.models.WorkSpaces || mongoose.model("WorkSpaces", WorkspaceSchema);
 export default WorkSpaces;
@@ -120,3 +167,7 @@ const Documents =
 export { Documents };
 const Users = mongoose.models.Users || mongoose.model("Users", userSchema);
 export { Users };
+const PermissionRequest =
+  mongoose.models.PermissionRequest ||
+  mongoose.model("PermissionRequest", PermissionRequestSchema);
+export { PermissionRequest };
