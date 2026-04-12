@@ -13,6 +13,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { WorkspaceEditor } from "./workspace-editor";
+import { useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +54,9 @@ function MemberAvatar({ initial, color }: { initial: string; color: string }) {
     <div
       className={`w-7 h-7 ${color} rounded-xl outline outline-2 outline-offset-[-2px] outline-stone-50 flex items-center justify-center -ml-2 first:ml-0`}
     >
-      <span className="text-zinc-800 text-[10px] font-bold leading-4">{initial}</span>
+      <span className="text-zinc-800 text-[10px] font-bold leading-4">
+        {initial}
+      </span>
     </div>
   );
 }
@@ -72,22 +75,29 @@ export function WorkspacesList({
   const [items, setItems] = useState(workspaces);
 
   // Sync when parent prop changes (search filter)
-  if (JSON.stringify(items.map((i) => i._id)) !== JSON.stringify(workspaces.map((i) => i._id))) {
+  useEffect(() => {
     setItems(workspaces);
-  }
+  }, [workspaces]);
 
   const deleteWorkSpace = async (id: string) => {
     try {
-      await fetch(`/api/workspace?id=${id}`, { method: "DELETE" });
-      setItems((prev) => prev.filter((ws) => ws._id !== id));
+      const res = await fetch(`/api/workspace?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        throw new Error("Error in Deleting");
+      }
+      setItems((prev) => prev.filter((ws) => ws._id !== String(id)));
     } catch (e) {
       if (e instanceof Error) throw new Error(e.message);
       throw new Error("Uncertain about Error");
     }
   };
 
-
-  const AVATAR_COLORS = ["bg-neutral-200", "bg-lime-100", "bg-stone-300", "bg-stone-200"];
+  const AVATAR_COLORS = [
+    "bg-neutral-200",
+    "bg-lime-100",
+    "bg-stone-300",
+    "bg-stone-200",
+  ];
 
   return (
     <div style={{ fontFamily: "'Manrope', sans-serif" }}>
@@ -101,7 +111,9 @@ export function WorkspacesList({
             return (
               <div
                 key={workspace._id || idx}
-                onClick={() => onOpenWorkspace ? onOpenWorkspace(workspace) : null}
+                onClick={() =>
+                  onOpenWorkspace ? onOpenWorkspace(workspace) : null
+                }
                 className={`px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition-colors ${
                   idx > 0 ? "border-t border-neutral-400/20" : ""
                 }`}
@@ -150,7 +162,11 @@ export function WorkspacesList({
                   {workspace.owner === currentUser.id && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-stone-500 hover:text-zinc-800">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-7 h-7 text-stone-500 hover:text-zinc-800"
+                        >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -176,7 +192,9 @@ export function WorkspacesList({
         <div className="border-2 border-dashed border-zinc-300 rounded-xl py-12 flex flex-col items-center gap-4 bg-stone-50">
           <FileText className="w-10 h-10 text-stone-300" />
           <div className="text-center">
-            <p className="text-zinc-800 font-semibold text-sm">No workspaces yet</p>
+            <p className="text-zinc-800 font-semibold text-sm">
+              No workspaces yet
+            </p>
             <p className="text-stone-600 text-xs mt-1">
               Create your first workspace to start collaborating
             </p>

@@ -1,12 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutDashboard, FolderOpen, PlusCircle, Settings, LogOut, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderOpen,
+  PlusCircle,
+  Settings,
+  LogOut,
+  X,
+  Inbox,
+} from "lucide-react";
 import Link from "next/link";
 
 interface LeftSidebarProps {
-  activeTab: "dashboard" | "all" | "create";
-  onTabChange: (tab: "dashboard" | "all" | "create") => void;
+  activeTab: "dashboard" | "all" | "create|inbox";
+  onTabChange: (tab: "dashboard" | "all" | "create | inbox") => void;
   onCreateWorkspace: () => void;
   onLogout: () => void;
   userEmail: string;
@@ -16,6 +24,7 @@ const NAV_ITEMS = [
   { id: "dashboard" as const, label: "Dashboard", Icon: LayoutDashboard },
   { id: "all" as const, label: "All Workspaces", Icon: FolderOpen },
   { id: "create" as const, label: "Create Workspace", Icon: PlusCircle },
+  { id: "inbox" as const, label: "Inbox", Icon: Inbox },
 ];
 
 export function LeftSidebar({
@@ -36,7 +45,11 @@ export function LeftSidebar({
         {/* Logo — Image */}
         <Link href="/">
           <div className="px-6 pt-9 pb-10 flex items-center ">
-            <img src="/logo.png" alt="Voyatri Logo" className="h-5  w-auto opacity-80 object-contain" />
+            <img
+              src="/logo.png"
+              alt="Voyatri Logo"
+              className="h-5  w-auto opacity-80 object-contain"
+            />
           </div>
         </Link>
 
@@ -54,10 +67,11 @@ export function LeftSidebar({
                     onTabChange(id);
                   }
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${isActive
-                  ? "bg-stone-300 text-zinc-800 font-semibold"
-                  : "text-stone-600 hover:bg-stone-200 font-normal"
-                  }`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                  isActive
+                    ? "bg-stone-300 text-zinc-800 font-semibold"
+                    : "text-stone-600 hover:bg-stone-200 font-normal"
+                }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{label}</span>
@@ -77,23 +91,27 @@ export function LeftSidebar({
           )}
 
           {settingsOpen && (
-            <div className="absolute bottom-[calc(100%-24px)] left-3 mb-2 w-[calc(100%-24px)] 
+            <div
+              className="absolute bottom-[calc(100%-24px)] left-3 mb-2 w-[calc(100%-24px)] 
                             bg-white/95 backdrop-blur-xl 
                             rounded-xl shadow-lg shadow-black/5 border border-stone-200/80 
-                            overflow-hidden z-50 animate-in fade-in zoom-in-95">
-
+                            overflow-hidden z-50 animate-in fade-in zoom-in-95"
+            >
               {/* Header */}
               <div className="flex items-center gap-3 p-4 border-b border-stone-100 bg-stone-50/50">
-
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-stone-200 
-                                flex items-center justify-center text-zinc-800 font-bold text-xs ring-1 ring-stone-300">
+                <div
+                  className="w-8 h-8 rounded-full bg-stone-200 
+                                flex items-center justify-center text-zinc-800 font-bold text-xs ring-1 ring-stone-300"
+                >
                   {userEmail?.[0]?.toUpperCase()}
                 </div>
 
                 {/* User Info */}
                 <div className="flex flex-col min-w-0 justify-center">
-                  <span className="text-[10px] text-stone-500 font-bold uppercase tracking-wider mb-0.5">Account</span>
+                  <span className="text-[10px] text-stone-500 font-bold uppercase tracking-wider mb-0.5">
+                    Account
+                  </span>
                   <span className="text-sm font-semibold text-zinc-800 truncate leading-4">
                     {userEmail}
                   </span>
@@ -122,17 +140,22 @@ export function LeftSidebar({
             onClick={() => setSettingsOpen(!settingsOpen)}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm 
                       transition-all duration-200 relative z-50 group
-                      ${settingsOpen
-                ? "bg-stone-300 text-zinc-800 font-semibold"
-                : "text-stone-600 hover:bg-stone-200 hover:text-zinc-800 font-normal"
-              }`}
+                      ${
+                        settingsOpen
+                          ? "bg-stone-300 text-zinc-800 font-semibold"
+                          : "text-stone-600 hover:bg-stone-200 hover:text-zinc-800 font-normal"
+                      }`}
           >
             {/* Icon */}
-            <Settings className={`w-4 h-4 shrink-0 transition-transform duration-200 
-                                ${settingsOpen ? "rotate-90 text-zinc-800" : "group-hover:rotate-12"}`} />
+            <Settings
+              className={`w-4 h-4 shrink-0 transition-transform duration-200 
+                                ${settingsOpen ? "rotate-90 text-zinc-800" : "group-hover:rotate-12"}`}
+            />
 
             {/* Label */}
-            <span className={settingsOpen ? "font-semibold" : ""}>Settings</span>
+            <span className={settingsOpen ? "font-semibold" : ""}>
+              Settings
+            </span>
           </button>
         </div>
       </aside>
