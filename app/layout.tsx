@@ -11,23 +11,13 @@ export const metadata: Metadata = {
   title: "BlackLetter - Legal Agreement Dashboard",
   description:
     "Professional legal agreement management with real-time collaboration",
-  generator: "v0.app",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
+        url: "/logo.png",
         media: "(prefers-color-scheme: dark)",
       },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
     ],
-    apple: "/apple-icon.png",
   },
 };
 
