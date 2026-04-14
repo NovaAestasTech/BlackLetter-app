@@ -218,8 +218,9 @@ export function WorkspaceEditor({
         originalFileName: file.name,
         fileSize: file.size,
       };
-      await addDocument(doc, workspace._id);
       setDocuments([doc, ...documents]);
+      await addDocument(doc, workspace._id);
+
     } catch (error) {
       console.error("Error uploading file:", error);
     }
