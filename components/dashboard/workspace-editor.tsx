@@ -72,7 +72,9 @@ export function WorkspaceEditor({
   initialFileToUpload,
 }: WorkspaceEditorProps) {
   const [documents, setDocuments] = useState<any[]>([]);
-  const [selectedDoc, setSelectedDoc] = useState<ParsedDocument | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<
+    (ParsedDocument & { _id: string }) | null
+  >(null);
   const [showNewDoc, setShowNewDoc] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState("");
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -348,7 +350,12 @@ export function WorkspaceEditor({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: selectedDoc.content, role: role }),
+            body: JSON.stringify({ 
+              content: selectedDoc.content,
+              role: role,
+              documentId: selectedDoc._id,
+              userId: currentUser.id,
+             }),
           },
         );
         if (res.ok) {

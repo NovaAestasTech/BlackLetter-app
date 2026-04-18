@@ -30,7 +30,10 @@ export interface WorkspaceEditorProps {
   initialFileToUpload?: File | null;
 }
 export interface ParsedDocument {
+  _id: string;
+  title: string;
   content: string;
+  fileType?: string;
 }
 export interface WorkspacesListProps {
   workspaces: any[];

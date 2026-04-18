@@ -21,6 +21,7 @@ export function AuthPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +62,7 @@ export function AuthPage() {
         }
       }
     } catch (e) {
+      setIsLoading(false);
       if (e instanceof Error) throw new Error(e.message);
       throw new Error("Unidentified Error");
     }
